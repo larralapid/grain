@@ -12,7 +12,13 @@ import SwiftData
 struct grainApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Receipt.self,
+            ReceiptItem.self,
+            Product.self,
+            PricePoint.self,
+            Brand.self,
+            BankTransaction.self,
+            SpendingAnalytics.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -25,7 +31,7 @@ struct grainApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainTabView()
         }
         .modelContainer(sharedModelContainer)
     }
