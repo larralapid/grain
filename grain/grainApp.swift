@@ -10,6 +10,8 @@ import SwiftData
 
 @main
 struct grainApp: App {
+    @ObservedObject private var appearance = AppearanceManager.shared
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Receipt.self,
@@ -32,6 +34,7 @@ struct grainApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .preferredColorScheme(appearance.isDarkMode ? .dark : .light)
         }
         .modelContainer(sharedModelContainer)
     }

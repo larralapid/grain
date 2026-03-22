@@ -2,6 +2,8 @@
 
 Grain is a comprehensive iOS app that scans receipts and tracks expenses down to the most granular level. Track your products, brands, and spending patterns with powerful analytics and insights.
 
+**[Changelog](CHANGELOG.md)** · **[Wiki](../../wiki)** · **[Architecture Decisions](wiki/adr/README.md)** · **[Current State](wiki/Current-State.md)** · **[Redesign Spec](wiki/Redesign-Spec.md)**
+
 ## Features
 
 ### 📱 Receipt Scanning
@@ -55,6 +57,11 @@ Grain is a comprehensive iOS app that scans receipts and tracks expenses down to
 3. **Save**: Store the receipt with all item details
 4. **Analytics**: View spending insights in the Analytics tab
 5. **Track Products**: Monitor your favorite brands and products
+
+## Documentation
+
+- [Current State Assessment](wiki/Current-State.md) — audit of what's built, what's broken, and what's next
+- [Redesign Spec](wiki/Redesign-Spec.md) — inspiration analysis, design system, and three wireframe directions
 
 ## Future Enhancements
 
