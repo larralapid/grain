@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Project Board
+    url: https://github.com/users/larralapid/projects
+    about: View and track all issues on the project board
