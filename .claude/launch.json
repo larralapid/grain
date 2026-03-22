@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "grain-mockup",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8080", "--directory", "."],
+      "runtimeExecutable": "ruby",
+      "runtimeArgs": ["-e", "require 'webrick'; WEBrick::HTTPServer.new(Port: 8080, DocumentRoot: '.').start"],
       "port": 8080
     }
   ]

@@ -1,422 +1,263 @@
 import SwiftUI
 import SwiftData
 
+enum IndexSubview: String, CaseIterable {
+    case products, brands, retailers
+}
+
 struct ProductsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var products: [Product]
     @Query private var brands: [Brand]
-    @State private var selectedTab = 0
+    @Query(sort: \Receipt.date, order: .reverse) private var receipts: [Receipt]
+    @State private var selectedView: IndexSubview = .products
     @State private var searchText = ""
-    
+
     var body: some View {
         NavigationView {
-            VStack {
-                Picker("View", selection: $selectedTab) {
-                    Text("Products").tag(0)
-                    Text("Brands").tag(1)
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
-                
-                if selectedTab == 0 {
-                    ProductListView(products: filteredProducts, searchText: $searchText)
-                } else {
-                    BrandListView(brands: filteredBrands, searchText: $searchText)
-                }
-            }
-            .navigationTitle("Products & Brands")
-            .searchable(text: $searchText)
-        }
-    }
-    
-    private var filteredProducts: [Product] {
-        if searchText.isEmpty {
-            return products
-        }
-        
-        return products.filter { product in
-            product.name.localizedCaseInsensitiveContains(searchText) ||
-            product.brand?.localizedCaseInsensitiveContains(searchText) ?? false ||
-            product.category.localizedCaseInsensitiveContains(searchText)
-        }
-    }
-    
-    private var filteredBrands: [Brand] {
-        if searchText.isEmpty {
-            return brands
-        }
-        
-        return brands.filter { brand in
-            brand.name.localizedCaseInsensitiveContains(searchText) ||
-            brand.category?.localizedCaseInsensitiveContains(searchText) ?? false
-        }
-    }
-}
+            ZStack {
+                GrainTheme.bg.ignoresSafeArea()
 
-struct ProductListView: View {
-    let products: [Product]
-    @Binding var searchText: String
-    
-    var body: some View {
-        if products.isEmpty {
-            VStack(spacing: 16) {
-                Image(systemName: "tag")
-                    .font(.system(size: 60))
-                    .foregroundColor(.secondary)
-                
-                Text("No Products")
-                    .font(.title2)
-                    .fontWeight(.medium)
-                
-                Text("Products will appear here as you scan receipts")
-                    .font(.body)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
-            List(products) { product in
-                NavigationLink(destination: ProductDetailView(product: product)) {
-                    ProductRowView(product: product)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        header
+                        viewToggle
+                        viewContent
+                    }
+                    .padding(.horizontal, 24)
                 }
             }
+            .navigationBarHidden(true)
         }
     }
-}
 
-struct BrandListView: View {
-    let brands: [Brand]
-    @Binding var searchText: String
-    
-    var body: some View {
-        if brands.isEmpty {
-            VStack(spacing: 16) {
-                Image(systemName: "building.2")
-                    .font(.system(size: 60))
-                    .foregroundColor(.secondary)
-                
-                Text("No Brands")
-                    .font(.title2)
-                    .fontWeight(.medium)
-                
-                Text("Brands will appear here as you scan receipts")
-                    .font(.body)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
-            List(brands) { brand in
-                NavigationLink(destination: BrandDetailView(brand: brand)) {
-                    BrandRowView(brand: brand)
-                }
-            }
-        }
-    }
-}
+    // MARK: - Header
 
-struct ProductRowView: View {
-    let product: Product
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(product.name)
-                    .font(.headline)
-                    .lineLimit(2)
-                
-                if let brand = product.brand {
-                    Text(brand)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                
-                Text(product.category)
-                    .font(.caption)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color.blue.opacity(0.1))
-                    .foregroundColor(.blue)
-                    .cornerRadius(4)
-            }
-            
-            Spacer()
-            
-            VStack(alignment: .trailing, spacing: 4) {
-                if let avgPrice = product.averagePrice {
-                    Text(avgPrice.formatted(.currency(code: "USD")))
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    Text("avg price")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Text("\(product.priceHistory.count) purchases")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding(.vertical, 4)
-    }
-}
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("grain")
+                .font(GrainTheme.mono(11))
+                .tracking(2.2)
+                .foregroundColor(GrainTheme.textSecondary)
+                .padding(.top, 16)
 
-struct BrandRowView: View {
-    let brand: Brand
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(brand.name)
-                    .font(.headline)
-                    .lineLimit(1)
-                
-                if let category = brand.category {
-                    Text(category)
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.green.opacity(0.1))
-                        .foregroundColor(.green)
-                        .cornerRadius(4)
-                }
-                
-                Text("\(brand.products.count) products")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(brand.totalSpent.formatted(.currency(code: "USD")))
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Text("\(brand.transactionCount) transactions")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+            Text("who gets paid when you buy things")
+                .font(GrainTheme.mono(10))
+                .foregroundColor(GrainTheme.dateHeader)
+                .tracking(0.4)
+                .padding(.top, 4)
         }
-        .padding(.vertical, 4)
     }
-}
 
-struct ProductDetailView: View {
-    let product: Product
-    
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                productHeader
-                
-                if !product.priceHistory.isEmpty {
-                    priceHistorySection
-                }
-                
-                if let description = product.description {
-                    descriptionSection(description)
-                }
-            }
-            .padding()
-        }
-        .navigationTitle(product.name)
-        .navigationBarTitleDisplayMode(.large)
-    }
-    
-    private var productHeader: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if let brand = product.brand {
-                Text(brand)
-                    .font(.title3)
-                    .foregroundColor(.secondary)
-            }
-            
-            HStack {
-                Text(product.category)
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.blue.opacity(0.1))
-                    .foregroundColor(.blue)
-                    .cornerRadius(6)
-                
-                if let subcategory = product.subcategory {
-                    Text(subcategory)
-                        .font(.caption)
-                        .padding(.horizontal, 8)
+    // MARK: - Toggle
+
+    private var viewToggle: some View {
+        HStack(spacing: 16) {
+            ForEach(IndexSubview.allCases, id: \.self) { view in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedView = view
+                    }
+                } label: {
+                    Text(view.rawValue.uppercased())
+                        .font(GrainTheme.mono(12))
+                        .tracking(1)
+                        .foregroundColor(selectedView == view ? GrainTheme.textPrimary : GrainTheme.textSecondary)
                         .padding(.vertical, 4)
-                        .background(Color.green.opacity(0.1))
-                        .foregroundColor(.green)
-                        .cornerRadius(6)
+                        .overlay(alignment: .bottom) {
+                            if selectedView == view {
+                                Rectangle()
+                                    .fill(GrainTheme.accent)
+                                    .frame(height: 1.5)
+                            }
+                        }
                 }
-            }
-            
-            if let avgPrice = product.averagePrice {
-                Text("Average Price: \(avgPrice.formatted(.currency(code: "USD")))")
-                    .font(.headline)
-                    .fontWeight(.semibold)
+                .buttonStyle(.plain)
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .padding(.top, 16)
+        .padding(.bottom, 20)
     }
-    
-    private var priceHistorySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Price History")
-                .font(.headline)
-            
-            ForEach(product.priceHistory.sorted(by: { $0.date > $1.date }), id: \.id) { pricePoint in
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(pricePoint.merchantName)
-                            .font(.body)
-                        Text(pricePoint.date.formatted(date: .abbreviated, time: .omitted))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    Text(pricePoint.price.formatted(.currency(code: "USD")))
-                        .font(.body)
-                        .fontWeight(.medium)
-                }
-                .padding(.vertical, 4)
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-    
-    private func descriptionSection(_ description: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Description")
-                .font(.headline)
-            
-            Text(description)
-                .font(.body)
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-}
 
-struct BrandDetailView: View {
-    let brand: Brand
-    
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                brandHeader
-                
-                if !brand.products.isEmpty {
-                    productsSection
-                }
-            }
-            .padding()
-        }
-        .navigationTitle(brand.name)
-        .navigationBarTitleDisplayMode(.large)
-    }
-    
-    private var brandHeader: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if let category = brand.category {
-                Text(category)
-                    .font(.title3)
-                    .foregroundColor(.secondary)
-            }
-            
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Total Spent:")
-                    Spacer()
-                    Text(brand.totalSpent.formatted(.currency(code: "USD")))
-                        .fontWeight(.semibold)
-                }
-                
-                HStack {
-                    Text("Transactions:")
-                    Spacer()
-                    Text("\(brand.transactionCount)")
-                        .fontWeight(.semibold)
-                }
-                
-                HStack {
-                    Text("Average per Transaction:")
-                    Spacer()
-                    Text(brand.averageTransactionAmount.formatted(.currency(code: "USD")))
-                        .fontWeight(.semibold)
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-    
-    private var productsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Products")
-                .font(.headline)
-            
-            ForEach(brand.products, id: \.id) { product in
-                NavigationLink(destination: ProductDetailView(product: product)) {
-                    ProductRowView(product: product)
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-}
+    // MARK: - Content
 
-struct SettingsView: View {
-    var body: some View {
-        NavigationView {
-            List {
-                Section("Data") {
-                    NavigationLink("Export Data") {
-                        Text("Export functionality coming soon")
-                    }
-                    
-                    NavigationLink("Import Bank Transactions") {
-                        Text("Bank import functionality coming soon")
-                    }
-                }
-                
-                Section("Tax") {
-                    NavigationLink("Tax Categories") {
-                        Text("Tax category settings coming soon")
-                    }
-                    
-                    NavigationLink("Deduction Rules") {
-                        Text("Deduction rules coming soon")
-                    }
-                }
-                
-                Section("About") {
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        Text("1.0.0")
-                            .foregroundColor(.secondary)
+    @ViewBuilder
+    private var viewContent: some View {
+        switch selectedView {
+        case .products:
+            productsSubview
+        case .brands:
+            brandsSubview
+        case .retailers:
+            retailersSubview
+        }
+    }
+
+    // MARK: - Products (alphabetical index)
+
+    private var productsSubview: some View {
+        let grouped = groupProductsByLetter()
+
+        return VStack(alignment: .leading, spacing: 0) {
+            if grouped.isEmpty {
+                emptyContent("no products yet")
+            } else {
+                ForEach(grouped, id: \.0) { letter, items in
+                    Text(letter)
+                        .font(GrainTheme.mono(20, weight: .light))
+                        .foregroundColor(GrainTheme.textPrimary)
+                        .padding(.top, 20)
+                        .padding(.bottom, 8)
+
+                    ForEach(items, id: \.name) { item in
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(item.name)
+                                .font(GrainTheme.mono(13))
+                                .foregroundColor(GrainTheme.textPrimary)
+                                .tracking(0.2)
+
+                            Spacer()
+
+                            if let avg = item.averagePrice {
+                                Text("avg \(avg.formatted(.currency(code: "USD")))")
+                                    .font(GrainTheme.mono(14))
+                                    .foregroundColor(GrainTheme.textSecondary)
+                            }
+                        }
+                        .padding(.vertical, 10)
+                        .overlay(alignment: .bottom) {
+                            Rectangle()
+                                .fill(GrainTheme.border)
+                                .frame(height: 1)
+                        }
                     }
                 }
             }
-            .navigationTitle("Settings")
+            Spacer().frame(height: 40)
         }
+    }
+
+    // MARK: - Brands (cards)
+
+    private var brandsSubview: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("WHO MAKES WHAT YOU BUY")
+                .font(GrainTheme.mono(9))
+                .tracking(0.6)
+                .foregroundColor(GrainTheme.dateHeader)
+                .padding(.bottom, 16)
+
+            if brands.isEmpty {
+                emptyContent("no brands yet")
+            } else {
+                ForEach(brands.sorted(by: { $0.totalSpent > $1.totalSpent })) { brand in
+                    indexCard(
+                        name: brand.name,
+                        total: brand.totalSpent.formatted(.currency(code: "USD")),
+                        meta: "\(brand.products.count) product\(brand.products.count == 1 ? "" : "s") \u{00B7} \(brand.transactionCount) purchase\(brand.transactionCount == 1 ? "" : "s")"
+                    )
+                }
+            }
+            Spacer().frame(height: 40)
+        }
+    }
+
+    // MARK: - Retailers (cards)
+
+    private var retailersSubview: some View {
+        let retailers = groupReceiptsByRetailer()
+
+        return VStack(alignment: .leading, spacing: 0) {
+            Text("WHERE YOUR MONEY GOES")
+                .font(GrainTheme.mono(9))
+                .tracking(0.6)
+                .foregroundColor(GrainTheme.dateHeader)
+                .padding(.bottom, 16)
+
+            if retailers.isEmpty {
+                emptyContent("no retailers yet")
+            } else {
+                ForEach(retailers, id: \.name) { retailer in
+                    indexCard(
+                        name: retailer.name,
+                        total: retailer.total.formatted(.currency(code: "USD")),
+                        meta: "\(retailer.receiptCount) receipt\(retailer.receiptCount == 1 ? "" : "s") \u{00B7} \(retailer.productCount) product\(retailer.productCount == 1 ? "" : "s")"
+                    )
+                }
+            }
+            Spacer().frame(height: 40)
+        }
+    }
+
+    // MARK: - Components
+
+    private func indexCard(name: String, total: String, meta: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(name)
+                    .font(GrainTheme.mono(13))
+                    .foregroundColor(GrainTheme.textPrimary)
+                    .tracking(0.2)
+
+                Spacer()
+
+                Text(total)
+                    .font(GrainTheme.mono(15))
+                    .foregroundColor(GrainTheme.accent)
+            }
+
+            Text(meta)
+                .font(GrainTheme.mono(12))
+                .foregroundColor(GrainTheme.textSecondary)
+                .padding(.top, 6)
+        }
+        .padding(20)
+        .overlay(
+            Rectangle()
+                .stroke(GrainTheme.border, lineWidth: 1)
+        )
+        .padding(.bottom, 12)
+    }
+
+    private func emptyContent(_ message: String) -> some View {
+        Text(message)
+            .font(GrainTheme.mono(12))
+            .foregroundColor(GrainTheme.textSecondary)
+            .frame(maxWidth: .infinity)
+            .padding(.top, 40)
+    }
+
+    // MARK: - Data helpers
+
+    private func groupProductsByLetter() -> [(String, [Product])] {
+        let grouped = Dictionary(grouping: products) { product in
+            String(product.name.prefix(1)).uppercased()
+        }
+        return grouped.sorted { $0.key < $1.key }
+    }
+
+    private struct RetailerInfo {
+        let name: String
+        let total: Decimal
+        let receiptCount: Int
+        let productCount: Int
+    }
+
+    private func groupReceiptsByRetailer() -> [RetailerInfo] {
+        let grouped = Dictionary(grouping: receipts) { $0.merchantName }
+        return grouped.map { name, receipts in
+            RetailerInfo(
+                name: name,
+                total: receipts.reduce(Decimal(0)) { $0 + $1.total },
+                receiptCount: receipts.count,
+                productCount: receipts.reduce(0) { $0 + $1.items.count }
+            )
+        }
+        .sorted { $0.total > $1.total }
     }
 }
 
 #Preview {
     ProductsView()
-        .modelContainer(for: [Product.self, Brand.self], inMemory: true)
+        .modelContainer(for: [Product.self, Brand.self, Receipt.self], inMemory: true)
 }
