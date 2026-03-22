@@ -215,7 +215,7 @@ struct ProductDetailView: View {
                     priceHistorySection
                 }
                 
-                if let description = product.description {
+                if let description = product.productDescription {
                     descriptionSection(description)
                 }
             }

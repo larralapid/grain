@@ -7,7 +7,7 @@ final class BankTransaction {
     var transactionId: String
     var amount: Decimal
     var date: Date
-    var description: String
+    var transactionDescription: String
     var merchantName: String?
     var category: String?
     var accountId: String
@@ -34,7 +34,7 @@ final class BankTransaction {
         self.transactionId = transactionId
         self.amount = amount
         self.date = date
-        self.description = description
+        self.transactionDescription = description
         self.merchantName = merchantName
         self.category = category
         self.accountId = accountId

@@ -14,7 +14,7 @@ final class Product {
     var priceHistory: [PricePoint]
     var isTaxable: Bool
     var taxCategory: String?
-    var description: String?
+    var productDescription: String?
     var imageUrl: String?
     var createdAt: Date
     var updatedAt: Date
@@ -40,7 +40,7 @@ final class Product {
         self.sku = sku
         self.isTaxable = isTaxable
         self.taxCategory = taxCategory
-        self.description = description
+        self.productDescription = description
         self.imageUrl = imageUrl
         self.priceHistory = []
         self.createdAt = Date()

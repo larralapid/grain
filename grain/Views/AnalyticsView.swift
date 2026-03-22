@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import SwiftData
 
 struct AnalyticsView: View {
     @Environment(\.modelContext) private var modelContext
