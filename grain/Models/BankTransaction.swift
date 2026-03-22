@@ -7,7 +7,7 @@ final class BankTransaction {
     var transactionId: String
     var amount: Decimal
     var date: Date
-    var transactionDescription: String
+    @Attribute(originalName: "description") var transactionDescription: String
     var merchantName: String?
     var category: String?
     var accountId: String
