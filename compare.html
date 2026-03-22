@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=900, initial-scale=1">
+<title>Grain — Compare</title>
+<style>
+  :root {
+    --bg: #0E0E0E;
+    --text-primary: #E8E8E8;
+    --text-secondary: #606060;
+    --accent: #A0A0A0;
+    --border: #262626;
+    --surface: #181818;
+    --sans: 'SF Pro Text', 'Inter', system-ui, -apple-system, sans-serif;
+    --mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #080808; display: flex; flex-direction: column; align-items: center; padding: 24px 0; font-family: var(--mono); }
+
+  .round-label { color: #444; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; }
+
+  .compare-row { display: flex; gap: 32px; align-items: flex-start; }
+
+  .option { display: flex; flex-direction: column; align-items: center; }
+  .option-label { color: #555; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; }
+  .option-desc { color: #333; font-size: 10px; letter-spacing: 0.05em; margin-top: 10px; max-width: 300px; text-align: center; line-height: 1.5; }
+
+  .phone {
+    width: 300px; height: 650px; background: var(--bg);
+    border-radius: 34px; overflow: hidden; position: relative;
+    box-shadow: 0 0 0 1px #222;
+  }
+  .status-bar {
+    height: 42px; display: flex; align-items: flex-end;
+    justify-content: space-between; padding: 0 24px 6px;
+    font-family: var(--mono); font-size: 10px; color: #444;
+  }
+  .screen { padding: 0 20px; overflow-y: auto; height: calc(650px - 42px - 50px); scrollbar-width: none; }
+  .screen::-webkit-scrollbar { display: none; }
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 50px;
+    display: flex; align-items: flex-start; justify-content: space-around;
+    padding-top: 8px; border-top: 1px solid var(--border); background: var(--bg);
+  }
+  .tab-bar span { font-family: var(--mono); font-size: 9px; color: #444; }
+  .tab-bar span.active { color: #888; }
+
+  /* Shared styles */
+  .app-name { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: #444; padding-top: 10px; }
+  .amount { font-family: var(--mono); font-size: 28px; font-weight: 200; color: var(--text-primary); letter-spacing: -0.03em; margin: 14px 0 4px; }
+  .month { font-family: var(--mono); font-size: 11px; color: #444; letter-spacing: 0.04em; }
+  .summary { font-family: var(--mono); font-size: 10px; color: #444; margin-top: 2px; letter-spacing: 0.01em; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .section-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #444; margin-bottom: 12px; }
+  .date-hdr { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #333; padding: 14px 0 6px; border-bottom: 1px solid var(--border); }
+  .row { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 0; }
+  .row-meta { font-family: var(--mono); font-size: 9px; color: #444; margin-top: 2px; letter-spacing: 0.02em; }
+  .row-amount { font-family: var(--mono); font-size: 13px; color: var(--text-primary); }
+  .header-row { display: flex; justify-content: space-between; align-items: baseline; margin: 14px 0 4px; }
+
+  /* === VARIANT A: all mono === */
+  .va .merchant { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--text-primary); letter-spacing: 0.02em; }
+
+  /* === VARIANT B: sans, ultralight, tracked === */
+  .vb .merchant { font-family: var(--sans); font-size: 14px; font-weight: 300; color: var(--text-primary); letter-spacing: 0.06em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<div class="round-label">round 1 &mdash; retailer / merchant name font</div>
+
+<div class="compare-row">
+  <!-- OPTION A -->
+  <div class="option">
+    <div class="option-label">A</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>...</span></div>
+      <div class="screen va">
+        <div class="app-name">grain</div>
+        <div class="header-row">
+          <div class="amount">$482.14</div>
+          <div class="month">mar 2026</div>
+        </div>
+        <div class="summary">groceries + home. 12% over feb.</div>
+        <hr class="divider">
+        <div class="section-label">recent</div>
+        <div class="date-hdr">saturday, mar 22</div>
+        <div class="row"><div><div class="merchant">Corner Market</div><div class="row-meta">yesterday &middot; 5 items &middot; groceries</div></div><div class="row-amount">$42.90</div></div>
+        <div class="row"><div><div class="merchant">CVS Pharmacy</div><div class="row-meta">yesterday &middot; 2 items &middot; health</div></div><div class="row-amount">$18.12</div></div>
+        <div class="date-hdr">thursday, mar 20</div>
+        <div class="row"><div><div class="merchant">Whole Foods</div><div class="row-meta">thursday &middot; 11 items &middot; groceries</div></div><div class="row-amount">$67.34</div></div>
+        <div class="date-hdr">tuesday, mar 18</div>
+        <div class="row"><div><div class="merchant">Blue Bottle Coffee</div><div class="row-meta">tuesday &middot; 1 item &middot; dining</div></div><div class="row-amount">$5.80</div></div>
+        <div class="row"><div><div class="merchant">Target</div><div class="row-meta">tuesday &middot; 7 items &middot; home</div></div><div class="row-amount">$93.47</div></div>
+        <div class="date-hdr">sunday, mar 16</div>
+        <div class="row"><div><div class="merchant">Trader Joe's</div><div class="row-meta">sunday &middot; 14 items &middot; groceries</div></div><div class="row-amount">$78.20</div></div>
+      </div>
+      <div class="tab-bar"><span class="active">receipts</span><span>scan</span><span>analytics</span><span>index</span><span>settings</span></div>
+    </div>
+    <div class="option-desc">all mono. same font as everything else. names blend into the data grid. maximum consistency.</div>
+  </div>
+
+  <!-- OPTION B -->
+  <div class="option">
+    <div class="option-label">B</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>...</span></div>
+      <div class="screen vb">
+        <div class="app-name">grain</div>
+        <div class="header-row">
+          <div class="amount">$482.14</div>
+          <div class="month">mar 2026</div>
+        </div>
+        <div class="summary">groceries + home. 12% over feb.</div>
+        <hr class="divider">
+        <div class="section-label">recent</div>
+        <div class="date-hdr">saturday, mar 22</div>
+        <div class="row"><div><div class="merchant">Corner Market</div><div class="row-meta">yesterday &middot; 5 items &middot; groceries</div></div><div class="row-amount">$42.90</div></div>
+        <div class="row"><div><div class="merchant">CVS Pharmacy</div><div class="row-meta">yesterday &middot; 2 items &middot; health</div></div><div class="row-amount">$18.12</div></div>
+        <div class="date-hdr">thursday, mar 20</div>
+        <div class="row"><div><div class="merchant">Whole Foods</div><div class="row-meta">thursday &middot; 11 items &middot; groceries</div></div><div class="row-amount">$67.34</div></div>
+        <div class="date-hdr">tuesday, mar 18</div>
+        <div class="row"><div><div class="merchant">Blue Bottle Coffee</div><div class="row-meta">tuesday &middot; 1 item &middot; dining</div></div><div class="row-amount">$5.80</div></div>
+        <div class="row"><div><div class="merchant">Target</div><div class="row-meta">tuesday &middot; 7 items &middot; home</div></div><div class="row-amount">$93.47</div></div>
+        <div class="date-hdr">sunday, mar 16</div>
+        <div class="row"><div><div class="merchant">Trader Joe's</div><div class="row-meta">sunday &middot; 14 items &middot; groceries</div></div><div class="row-amount">$78.20</div></div>
+      </div>
+      <div class="tab-bar"><span class="active">receipts</span><span>scan</span><span>analytics</span><span>index</span><span>settings</span></div>
+    </div>
+    <div class="option-desc">sans ultralight uppercase tracked. names stand apart from mono data. subtle hierarchy separation.</div>
+  </div>
+</div>
+
+</body>
+</html>

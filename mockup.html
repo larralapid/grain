@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Grain — Journal Mockup</title>
+<style>
+  :root {
+    --bg: #0E0E0E;
+    --text-primary: #E8E8E8;
+    --text-secondary: #606060;
+    --accent: #A0A0A0;
+    --accent-highlight: #E8C547;
+    --border: #262626;
+    --surface: #181818;
+    --sans: 'SF Pro Text', 'Inter', system-ui, -apple-system, sans-serif;
+    --mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: var(--sans);
+    background: #1A1A1A;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px 0;
+  }
+  .phone {
+    width: 390px; height: 844px; background: var(--bg);
+    border-radius: 44px; overflow: hidden; position: relative;
+    box-shadow: 0 0 0 1px #222, 0 20px 60px rgba(0,0,0,0.7);
+  }
+  .status-bar {
+    height: 54px; display: flex; align-items: flex-end;
+    justify-content: center; padding: 0 32px 8px;
+    font-family: var(--sans); font-size: 15px; font-weight: 600; color: var(--text-primary);
+  }
+  .screen {
+    display: none; height: calc(844px - 54px - 64px);
+    overflow-y: auto; padding: 0 24px; scrollbar-width: none;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+  .screen.active { display: block; }
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 64px;
+    display: flex; align-items: flex-start; justify-content: space-around;
+    padding-top: 10px; border-top: 1px solid var(--border); background: var(--bg);
+  }
+  .tab-bar button {
+    background: none; border: none; font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.05em; color: var(--text-secondary); cursor: pointer;
+    padding: 4px 12px; text-transform: lowercase; transition: color 0.2s;
+  }
+  .tab-bar button.active { color: var(--accent); }
+  .tab-bar button:hover { color: var(--text-primary); }
+
+  .screen-title { font-family: var(--mono); font-size: 14px; font-weight: 400; color: var(--text-secondary); letter-spacing: 0.04em; text-transform: lowercase; }
+  .primary-amount { font-family: var(--mono); font-size: 36px; font-weight: 300; color: var(--text-primary); letter-spacing: -0.03em; margin: 4px 0 0; }
+  .merchant-name { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--text-primary); letter-spacing: 0.02em; }
+  .metadata { font-family: var(--mono); font-size: 11px; color: var(--text-secondary); letter-spacing: 0.02em; }
+  .summary-text { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); line-height: 1.6; letter-spacing: 0.01em; }
+  .section-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 16px; }
+  .app-name { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: lowercase; color: var(--text-secondary); }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  .receipt-row { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 0; cursor: pointer; transition: opacity 0.15s; }
+  .receipt-row:hover { opacity: 0.7; }
+  .receipt-left { flex: 1; }
+  .receipt-amount { font-family: var(--mono); font-size: 15px; color: var(--text-primary); text-align: right; }
+  .receipt-meta { font-family: var(--mono); font-size: 11px; color: var(--text-secondary); margin-top: 3px; letter-spacing: 0.02em; }
+  .date-header { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #444; padding: 20px 0 8px; border-bottom: 1px solid var(--border); }
+
+  .detail-back { font-family: var(--mono); font-size: 12px; color: #666; cursor: pointer; padding: 16px 0 24px; background: none; border: none; display: block; }
+  .detail-back:hover { color: #999; }
+  .detail-merchant { font-family: var(--mono); font-size: 18px; font-weight: 400; color: var(--text-primary); margin-bottom: 4px; letter-spacing: 0.01em; }
+  .detail-date { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); margin-bottom: 24px; }
+  .item-row { display: flex; justify-content: space-between; padding: 10px 0; font-family: var(--mono); font-size: 12px; color: var(--text-primary); letter-spacing: 0.01em; }
+  .item-row .item-price { font-family: var(--mono); font-size: 13px; text-align: right; min-width: 60px; }
+  .item-row.alt { background: rgba(255,255,255,0.02); margin: 0 -24px; padding: 10px 24px; }
+  .totals-section { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px; }
+  .total-row { display: flex; justify-content: space-between; padding: 6px 0; font-family: var(--mono); font-size: 14px; color: var(--text-secondary); }
+  .total-row.grand { font-size: 20px; color: var(--text-primary); padding: 12px 0; border-top: 1px solid var(--border); margin-top: 8px; }
+  .annotation { font-family: var(--mono); font-size: 11px; color: #444; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); letter-spacing: 0.02em; }
+
+  .scan-screen { background: #111; display: none; height: calc(844px - 54px - 64px); position: relative; }
+  .scan-screen.active { display: flex; flex-direction: column; }
+  .scan-viewfinder { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+  .scan-viewfinder::before { content: ''; width: 280px; height: 400px; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; position: absolute; }
+  .scan-hint { font-family: var(--mono); font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 0.1em; text-transform: uppercase; }
+  .scan-capture { display: flex; justify-content: center; padding: 30px 0 20px; }
+  .capture-btn { width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.9); background: none; cursor: pointer; position: relative; transition: transform 0.15s; }
+  .capture-btn:hover { transform: scale(1.05); }
+  .capture-btn::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: rgba(255,255,255,0.9); }
+
+  /* Proof sheet — thermal printer receipt on dark bg */
+  .proof-sheet { display: none; height: calc(844px - 54px - 64px); overflow-y: auto; padding: 0; scrollbar-width: none; background: #111; }
+  .proof-sheet::-webkit-scrollbar { display: none; }
+  .proof-sheet.active { display: block; }
+  .proof-receipt { max-width: 300px; margin: 24px auto 0; background: #FFFEF8; padding: 20px 16px; font-family: var(--mono); position: relative; }
+  .proof-receipt::before { content: ''; position: absolute; top: -8px; left: 0; right: 0; height: 8px; background: repeating-linear-gradient(90deg, #FFFEF8 0px, #FFFEF8 4px, transparent 4px, transparent 6px); }
+  .proof-receipt::after { content: ''; position: absolute; bottom: -8px; left: 0; right: 0; height: 8px; background: repeating-linear-gradient(90deg, #FFFEF8 0px, #FFFEF8 4px, transparent 4px, transparent 6px); }
+  .thermal-header { text-align: center; padding-bottom: 12px; border-bottom: 1px dashed #ccc; margin-bottom: 12px; }
+  .thermal-store { font-size: 14px; font-weight: 600; color: #111; letter-spacing: 0.08em; text-transform: uppercase; }
+  .thermal-addr { font-size: 9px; color: #666; margin-top: 2px; letter-spacing: 0.03em; }
+  .thermal-date { font-size: 9px; color: #666; margin-top: 4px; }
+  .thermal-item { display: flex; justify-content: space-between; padding: 3px 0; font-size: 11px; color: #222; }
+  .thermal-divider { border: none; border-top: 1px dashed #ccc; margin: 8px 0; }
+  .thermal-total-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 11px; color: #444; }
+  .thermal-total-row.grand { font-size: 14px; color: #111; font-weight: 600; padding: 6px 0 0; }
+  .thermal-footer { text-align: center; padding-top: 12px; border-top: 1px dashed #ccc; margin-top: 10px; font-size: 8px; color: #999; letter-spacing: 0.1em; text-transform: uppercase; }
+  .thermal-barcode { text-align: center; margin-top: 8px; font-size: 7px; color: #bbb; letter-spacing: 3px; }
+  .proof-actions { max-width: 300px; margin: 16px auto 0; }
+  .proof-save { display: block; width: 100%; padding: 14px; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+  .proof-save:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); }
+  .proof-edit { display: block; width: 100%; text-align: center; padding: 12px; background: none; border: none; font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.4); cursor: pointer; letter-spacing: 0.05em; }
+  .proof-edit:hover { color: rgba(255,255,255,0.7); }
+
+  /* Analytics */
+  .analytics-screen { background: var(--bg); }
+  .analytics-big-number { font-family: var(--mono); font-size: 48px; font-weight: 200; color: var(--text-primary); letter-spacing: -0.04em; margin: 12px 0 4px; }
+  .analytics-narrative { font-family: var(--mono); font-size: 11px; color: #555; line-height: 1.7; margin-bottom: 8px; letter-spacing: 0.02em; }
+  .analytics-month { font-family: var(--mono); font-size: 12px; color: #555; letter-spacing: 0.1em; text-transform: uppercase; }
+  .chart-bar-row { display: flex; align-items: center; margin-bottom: 8px; }
+  .chart-label { font-family: var(--mono); font-size: 10px; color: #555; width: 76px; text-align: right; padding-right: 10px; flex-shrink: 0; text-transform: lowercase; letter-spacing: 0.04em; }
+  .chart-bar-track { flex: 1; height: 24px; background: var(--surface); position: relative; }
+  .chart-bar-fill { height: 100%; background: #E8E8E8; transition: width 0.6s ease; }
+  .chart-value { font-family: var(--mono); font-size: 10px; color: #666; width: 44px; text-align: right; padding-left: 8px; flex-shrink: 0; }
+  .chart-caption { font-family: var(--mono); font-size: 10px; color: #444; margin-top: 8px; line-height: 1.5; letter-spacing: 0.02em; }
+  .analytics-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* Sub-page indicators */
+  .subpage-dots { display: flex; justify-content: center; gap: 6px; padding: 12px 0 4px; }
+  .subpage-dot { width: 5px; height: 5px; border-radius: 50%; background: #333; }
+  .subpage-dot.active { background: #888; }
+
+  /* Sub-page container */
+  .subpage-track { display: flex; overflow: hidden; width: 100%; }
+  .subpage { min-width: 100%; transition: transform 0.3s ease; }
+  .analytics-swipe-hint { font-family: var(--mono); font-size: 9px; color: #333; text-align: center; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 8px; }
+
+  /* Item Watch (sub-page 2) */
+  .iw-item { padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .iw-item:last-child { border-bottom: none; }
+  .iw-header { display: flex; justify-content: space-between; align-items: baseline; }
+  .iw-name { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--text-primary); letter-spacing: 0.02em; }
+  .iw-price { font-family: var(--mono); font-size: 13px; color: #888; }
+  .iw-meta { font-family: var(--mono); font-size: 10px; color: #444; margin-top: 4px; letter-spacing: 0.03em; }
+  .iw-spark { display: flex; align-items: flex-end; gap: 2px; height: 20px; margin-top: 8px; }
+  .iw-spark-bar { width: 6px; background: var(--text-primary); opacity: 0.2; border-radius: 0; }
+  .iw-spark-bar.latest { opacity: 0.8; }
+  .iw-up { color: #C05050; }
+  .iw-down { color: #50A070; }
+  .iw-flat { color: #555; }
+
+  .letter-header { font-family: var(--mono); font-size: 20px; font-weight: 300; color: var(--text-primary); padding: 20px 0 8px; }
+  .product-index-row { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .product-index-name { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--text-primary); letter-spacing: 0.02em; }
+  .product-index-price { font-family: var(--mono); font-size: 14px; color: var(--text-secondary); }
+
+  .brand-card { border: 1px solid var(--border); padding: 20px; margin-bottom: 12px; position: relative; }
+  .brand-card-name { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--text-primary); letter-spacing: 0.02em; }
+  .brand-card-total { font-family: var(--mono); font-size: 15px; color: var(--accent); position: absolute; top: 20px; right: 20px; }
+  .brand-card-meta { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+
+  .products-toggle { display: flex; gap: 16px; margin-bottom: 20px; }
+  .products-toggle button { background: none; border: none; font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); cursor: pointer; padding: 4px 0; border-bottom: 1.5px solid transparent; transition: all 0.2s; }
+  .products-toggle button.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+  .subview { display: none; }
+  .subview.active { display: block; }
+
+  .setting-row { padding: 20px 0; border-bottom: 1px solid var(--border); }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-label { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--text-primary); margin-bottom: 4px; letter-spacing: 0.02em; }
+  .setting-desc { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); line-height: 1.5; letter-spacing: 0.01em; }
+
+  .filter-icon { position: absolute; top: 16px; right: 24px; background: none; border: none; font-family: var(--mono); font-size: 11px; color: #555; cursor: pointer; letter-spacing: 0.05em; }
+  .filter-icon:hover { color: #888; }
+
+  /* Three-dot menu */
+  .detail-header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .detail-header-left { flex: 1; }
+  .dots-menu { position: relative; }
+  .dots-btn { background: none; border: none; font-family: var(--mono); font-size: 18px; color: var(--text-secondary); cursor: pointer; padding: 0 0 0 12px; line-height: 1; letter-spacing: 3px; }
+  .dots-btn:hover { color: var(--text-primary); }
+  .dots-dropdown { display: none; position: absolute; top: 24px; right: 0; background: #1A1A1A; border: 1px solid #333; padding: 4px 0; min-width: 160px; z-index: 10; }
+  .dots-dropdown.open { display: block; }
+  .dots-dropdown button { display: block; width: 100%; text-align: left; background: none; border: none; font-family: var(--mono); font-size: 11px; color: #C0C0C0; padding: 10px 16px; cursor: pointer; letter-spacing: 0.02em; }
+  .dots-dropdown button:hover { background: #222; }
+
+  /* Clickable items */
+  .item-row.clickable { cursor: pointer; transition: opacity 0.15s; }
+  .item-row.clickable:hover { opacity: 0.65; }
+  .item-row .item-name { flex: 1; }
+  .item-row .item-brand { font-family: var(--mono); font-size: 10px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px; }
+  .item-row .item-chevron { color: var(--border); font-size: 12px; margin-left: 8px; align-self: center; }
+
+  /* Scan overlay */
+  .scan-overlay { display: none; position: absolute; inset: 0; background: rgba(26,26,26,0.92); z-index: 20; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; }
+  .scan-overlay.open { display: flex; }
+  .scan-overlay-img { width: 260px; height: 360px; background: var(--surface); border: 0.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; color: var(--text-secondary); }
+  .scan-overlay-close { margin-top: 20px; background: none; border: none; font-family: var(--mono); font-size: 13px; color: white; cursor: pointer; letter-spacing: 0.05em; opacity: 0.7; }
+  .scan-overlay-close:hover { opacity: 1; }
+
+  /* Item analytics screen */
+  .item-analytics-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .item-spark { display: flex; align-items: flex-end; gap: 2px; height: 32px; margin: 16px 0; }
+  .item-spark-bar { width: 8px; background: var(--accent); opacity: 0.6; border-radius: 1px 1px 0 0; }
+  .item-spark-bar.latest { opacity: 1; }
+
+  .screen, .scan-screen, .proof-sheet { animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar"><span>9:41</span></div>
+
+  <!-- RECEIPTS HOME — JOURNAL -->
+  <div id="screen-receipts" class="screen active" style="position:relative;">
+    <button class="filter-icon" onclick="showScreen('receipts')">filter</button>
+    <div style="padding-top:12px; margin-bottom:0;">
+      <div class="app-name">grain</div>
+    </div>
+    <div style="margin:20px 0 6px; display:flex; justify-content:space-between; align-items:baseline;">
+      <div class="primary-amount">$482.14</div>
+      <div class="screen-title">mar 2026</div>
+    </div>
+    <div style="margin-bottom:0;"><p class="summary-text">groceries + home. 12% over feb.</p></div>
+    <hr class="divider">
+    <div class="section-label">recent</div>
+
+    <div class="date-header">saturday, mar 22</div>
+    <div class="receipt-row" data-detail="cornermarket"><div class="receipt-left"><div class="merchant-name">Corner Market</div><div class="receipt-meta">yesterday &middot; 5 items &middot; groceries</div></div><div class="receipt-amount">$42.90</div></div>
+    <div class="receipt-row" data-detail="cvs"><div class="receipt-left"><div class="merchant-name">CVS Pharmacy</div><div class="receipt-meta">yesterday &middot; 2 items &middot; health</div></div><div class="receipt-amount">$18.12</div></div>
+
+    <div class="date-header">thursday, mar 20</div>
+    <div class="receipt-row" data-detail="wholefoods"><div class="receipt-left"><div class="merchant-name">Whole Foods</div><div class="receipt-meta">thursday &middot; 11 items &middot; groceries</div></div><div class="receipt-amount">$67.34</div></div>
+
+    <div class="date-header">tuesday, mar 18</div>
+    <div class="receipt-row"><div class="receipt-left"><div class="merchant-name">Blue Bottle Coffee</div><div class="receipt-meta">tuesday &middot; 1 item &middot; dining</div></div><div class="receipt-amount">$5.80</div></div>
+    <div class="receipt-row"><div class="receipt-left"><div class="merchant-name">Target</div><div class="receipt-meta">tuesday &middot; 7 items &middot; home</div></div><div class="receipt-amount">$93.47</div></div>
+
+    <div class="date-header">sunday, mar 16</div>
+    <div class="receipt-row"><div class="receipt-left"><div class="merchant-name">Trader Joe's</div><div class="receipt-meta">sunday &middot; 14 items &middot; groceries</div></div><div class="receipt-amount">$78.20</div></div>
+    <div class="receipt-row"><div class="receipt-left"><div class="merchant-name">Shell Gas</div><div class="receipt-meta">sunday &middot; 1 item &middot; transport</div></div><div class="receipt-amount">$52.10</div></div>
+    <div style="height:40px;"></div>
+  </div>
+
+  <!-- DETAIL: CORNER MARKET -->
+  <div id="detail-cornermarket" class="screen" style="position:relative;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding-top:16px;">
+      <button class="detail-back" data-back="receipts" style="padding-top:0;">&larr; back</button>
+      <div class="dots-menu">
+        <button class="dots-btn" data-dots="cornermarket">&middot;&middot;&middot;</button>
+        <div class="dots-dropdown" id="dots-cornermarket">
+          <button data-scan-view="cornermarket">view scan</button>
+          <button>edit receipt</button>
+          <button>delete</button>
+        </div>
+      </div>
+    </div>
+    <div class="detail-merchant">Corner Market</div>
+    <div class="metadata" style="margin-bottom:2px;">2847 Mission St, San Francisco</div>
+    <div class="detail-date">march 22, 2026 &middot; 3:42 pm</div>
+    <div class="section-label" style="margin-top:24px;">items</div>
+    <div class="item-row clickable" data-item="bananas"><div class="item-name"><span>Organic Bananas</span><div class="item-brand">dole</div></div><span class="item-price">$2.49</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row alt clickable" data-item="milk"><div class="item-name"><span>Whole Milk, 1 gal</span><div class="item-brand">clover</div></div><span class="item-price">$4.99</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row clickable" data-item="bread"><div class="item-name"><span>Sourdough Loaf</span><div class="item-brand">acme</div></div><span class="item-price">$5.49</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row alt clickable" data-item="chicken"><div class="item-name"><span>Chicken Breast, 2lb</span><div class="item-brand">foster farms</div></div><span class="item-price">$12.98</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row clickable" data-item="greens"><div class="item-name"><span>Mixed Greens</span><div class="item-brand">earthbound</div></div><span class="item-price">$3.99</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="totals-section">
+      <div class="total-row"><span>subtotal</span><span>$29.94</span></div>
+      <div class="total-row"><span>tax</span><span>$2.10</span></div>
+      <div class="total-row grand"><span>total</span><span>$42.90</span></div>
+    </div>
+    <div class="annotation">groceries &middot; weekday grocery run. chicken was on sale.</div>
+    <!-- Scan overlay -->
+    <div class="scan-overlay" id="scan-overlay-cornermarket">
+      <div class="scan-overlay-img">receipt_032226.jpg</div>
+      <button class="scan-overlay-close" data-close-scan="cornermarket">close</button>
+    </div>
+  </div>
+
+  <!-- DETAIL: CVS -->
+  <div id="detail-cvs" class="screen" style="position:relative;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding-top:16px;">
+      <button class="detail-back" data-back="receipts" style="padding-top:0;">&larr; back</button>
+      <div class="dots-menu">
+        <button class="dots-btn" data-dots="cvs">&middot;&middot;&middot;</button>
+        <div class="dots-dropdown" id="dots-cvs">
+          <button data-scan-view="cvs">view scan</button>
+          <button>edit receipt</button>
+          <button>delete</button>
+        </div>
+      </div>
+    </div>
+    <div class="detail-merchant">CVS Pharmacy</div>
+    <div class="metadata" style="margin-bottom:2px;">1098 Market St, San Francisco</div>
+    <div class="detail-date">march 22, 2026 &middot; 11:15 am</div>
+    <div class="section-label" style="margin-top:24px;">items</div>
+    <div class="item-row clickable" data-item="ibuprofen"><div class="item-name"><span>Ibuprofen 200mg, 50ct</span><div class="item-brand">advil</div></div><span class="item-price">$9.99</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row alt clickable" data-item="vitamind"><div class="item-name"><span>Vitamin D3, 90ct</span><div class="item-brand">nature made</div></div><span class="item-price">$8.13</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="totals-section">
+      <div class="total-row"><span>subtotal</span><span>$18.12</span></div>
+      <div class="total-row"><span>tax</span><span>$0.00</span></div>
+      <div class="total-row grand"><span>total</span><span>$18.12</span></div>
+    </div>
+    <div class="annotation">health &middot; tax-exempt health items.</div>
+    <div class="scan-overlay" id="scan-overlay-cvs">
+      <div class="scan-overlay-img">receipt_032226b.jpg</div>
+      <button class="scan-overlay-close" data-close-scan="cvs">close</button>
+    </div>
+  </div>
+
+  <!-- DETAIL: WHOLE FOODS -->
+  <div id="detail-wholefoods" class="screen" style="position:relative;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding-top:16px;">
+      <button class="detail-back" data-back="receipts" style="padding-top:0;">&larr; back</button>
+      <div class="dots-menu">
+        <button class="dots-btn" data-dots="wholefoods">&middot;&middot;&middot;</button>
+        <div class="dots-dropdown" id="dots-wholefoods">
+          <button data-scan-view="wholefoods">view scan</button>
+          <button>edit receipt</button>
+          <button>delete</button>
+        </div>
+      </div>
+    </div>
+    <div class="detail-merchant">Whole Foods</div>
+    <div class="metadata" style="margin-bottom:2px;">399 4th St, San Francisco</div>
+    <div class="detail-date">march 20, 2026 &middot; 6:20 pm</div>
+    <div class="section-label" style="margin-top:24px;">items</div>
+    <div class="item-row clickable" data-item="oatmilk"><div class="item-name"><span>Oat Milk, Oatly</span><div class="item-brand">oatly</div></div><span class="item-price">$4.79</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row alt clickable" data-item="avocados"><div class="item-name"><span>Avocados (3)</span><div class="item-brand"></div></div><span class="item-price">$5.97</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row clickable" data-item="salmon"><div class="item-name"><span>Salmon Fillet, 1lb</span><div class="item-brand">365</div></div><span class="item-price">$14.99</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row alt clickable" data-item="rice"><div class="item-name"><span>Brown Rice, 2lb</span><div class="item-brand">lundberg</div></div><span class="item-price">$3.49</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row clickable" data-item="oliveoil"><div class="item-name"><span>Olive Oil, 500ml</span><div class="item-brand">california olive ranch</div></div><span class="item-price">$8.99</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row alt clickable" data-item="lemons"><div class="item-name"><span>Lemons (6)</span><div class="item-brand"></div></div><span class="item-price">$3.99</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row clickable" data-item="yogurt"><div class="item-name"><span>Greek Yogurt</span><div class="item-brand">fage</div></div><span class="item-price">$5.49</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row alt clickable" data-item="almondbutter"><div class="item-name"><span>Almond Butter</span><div class="item-brand">justin's</div></div><span class="item-price">$9.99</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row clickable" data-item="berries"><div class="item-name"><span>Frozen Berries</span><div class="item-brand">365</div></div><span class="item-price">$4.99</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row alt clickable" data-item="papertowels"><div class="item-name"><span>Paper Towels</span><div class="item-brand">seventh gen</div></div><span class="item-price">$8.29</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="item-row clickable" data-item="water"><div class="item-name"><span>Sparkling Water (12pk)</span><div class="item-brand">topo chico</div></div><span class="item-price">$6.99</span><span class="item-chevron">&rsaquo;</span></div>
+    <div class="totals-section">
+      <div class="total-row"><span>subtotal</span><span>$77.97</span></div>
+      <div class="total-row"><span>tax</span><span>$4.37</span></div>
+      <div class="total-row grand"><span>total</span><span>$67.34</span></div>
+    </div>
+    <div class="annotation">groceries &middot; big weekly haul. paper towels price went up again.</div>
+    <div class="scan-overlay" id="scan-overlay-wholefoods">
+      <div class="scan-overlay-img">receipt_032026.jpg</div>
+      <button class="scan-overlay-close" data-close-scan="wholefoods">close</button>
+    </div>
+  </div>
+
+  <!-- ITEM ANALYTICS (example: Oat Milk) -->
+  <div id="screen-item-analytics" class="screen">
+    <button class="detail-back" data-back-item>&larr; back</button>
+    <div class="detail-merchant" id="ia-name">Oat Milk</div>
+    <div class="metadata" id="ia-brand">oatly</div>
+    <div class="detail-date" id="ia-meta">8 purchases &middot; avg $4.50</div>
+
+    <div class="item-spark" id="ia-spark">
+      <div class="item-spark-bar" style="height:60%;"></div>
+      <div class="item-spark-bar" style="height:65%;"></div>
+      <div class="item-spark-bar" style="height:60%;"></div>
+      <div class="item-spark-bar" style="height:70%;"></div>
+      <div class="item-spark-bar" style="height:65%;"></div>
+      <div class="item-spark-bar" style="height:60%;"></div>
+      <div class="item-spark-bar" style="height:72%;"></div>
+      <div class="item-spark-bar latest" style="height:80%;"></div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+      <div><div class="metadata">low</div><div style="font-family:var(--mono);font-size:14px;color:var(--text-primary);">$3.99</div></div>
+      <div><div class="metadata">avg</div><div style="font-family:var(--mono);font-size:14px;color:var(--text-primary);">$4.50</div></div>
+      <div><div class="metadata">high</div><div style="font-family:var(--mono);font-size:14px;color:var(--text-primary);">$4.99</div></div>
+      <div><div class="metadata">last</div><div style="font-family:var(--mono);font-size:14px;color:var(--text-primary);">$4.79</div></div>
+    </div>
+
+    <hr class="divider">
+    <div class="section-label">purchase history</div>
+
+    <div class="receipt-row"><div class="receipt-left"><div class="merchant-name">Whole Foods</div><div class="receipt-meta">mar 20</div></div><div class="receipt-amount">$4.79</div></div>
+    <div class="receipt-row"><div class="receipt-left"><div class="merchant-name">Trader Joe's</div><div class="receipt-meta">mar 12</div></div><div class="receipt-amount">$3.99</div></div>
+    <div class="receipt-row"><div class="receipt-left"><div class="merchant-name">Whole Foods</div><div class="receipt-meta">mar 4</div></div><div class="receipt-amount">$4.79</div></div>
+    <div class="receipt-row"><div class="receipt-left"><div class="merchant-name">Whole Foods</div><div class="receipt-meta">feb 25</div></div><div class="receipt-amount">$4.49</div></div>
+    <div class="receipt-row"><div class="receipt-left"><div class="merchant-name">Corner Market</div><div class="receipt-meta">feb 18</div></div><div class="receipt-amount">$4.99</div></div>
+
+    <hr class="divider">
+    <div class="section-label">bought with</div>
+    <div class="metadata" style="line-height:1.8;">almond butter &middot; greek yogurt &middot; frozen berries &middot; bananas &middot; milk</div>
+  </div>
+
+  <!-- SCAN -->
+  <div id="screen-scan" class="scan-screen">
+    <div class="scan-viewfinder"><span class="scan-hint">position receipt in frame</span></div>
+    <div class="scan-capture"><button class="capture-btn" id="captureBtn"></button></div>
+  </div>
+
+  <!-- PROOF SHEET — thermal receipt -->
+  <div id="screen-proof" class="proof-sheet">
+    <div class="proof-receipt">
+      <div class="thermal-header">
+        <div class="thermal-store">Corner Market</div>
+        <div class="thermal-addr">2847 Mission St, San Francisco</div>
+        <div class="thermal-date">03/22/2026  15:42  REG #03</div>
+      </div>
+      <div class="thermal-item"><span>ORGANIC BANANAS</span><span>2.49</span></div>
+      <div class="thermal-item"><span>WHOLE MILK 1GAL</span><span>4.99</span></div>
+      <div class="thermal-item"><span>SOURDOUGH LOAF</span><span>5.49</span></div>
+      <div class="thermal-item"><span>CHICKEN BRST 2LB</span><span>12.98</span></div>
+      <div class="thermal-item"><span>MIXED GREENS</span><span>3.99</span></div>
+      <hr class="thermal-divider">
+      <div class="thermal-total-row"><span>SUBTOTAL</span><span>29.94</span></div>
+      <div class="thermal-total-row"><span>TAX</span><span>2.10</span></div>
+      <hr class="thermal-divider">
+      <div class="thermal-total-row grand"><span>TOTAL</span><span>42.90</span></div>
+      <div class="thermal-footer">thank you for shopping</div>
+      <div class="thermal-barcode">||||| |||| ||||| |||| |||||</div>
+    </div>
+    <div class="proof-actions">
+      <button class="proof-save" id="proofSaveBtn">save receipt</button>
+      <button class="proof-edit">edit before saving</button>
+    </div>
+    <div style="height:24px;"></div>
+  </div>
+
+  <!-- ANALYTICS — dark brutalist with sub-pages -->
+  <div id="screen-analytics" class="screen analytics-screen">
+    <!-- Sub-page dots -->
+    <div class="subpage-dots" style="padding-top:16px;">
+      <div class="subpage-dot active" id="dot-spending"></div>
+      <div class="subpage-dot" id="dot-itemwatch"></div>
+    </div>
+
+    <!-- Sub-page track -->
+    <div class="subpage-track" id="analytics-track">
+      <!-- PAGE 1: Spending -->
+      <div class="subpage" id="analytics-page-spending">
+        <div style="padding:0 24px;">
+          <div class="analytics-month">mar 2026</div>
+          <div class="analytics-big-number">$482.14</div>
+          <p class="analytics-narrative">+12% from feb. three grocery stores. dining flat.</p>
+
+          <hr class="analytics-divider">
+          <div class="section-label">category</div>
+          <div style="margin:12px 0 20px;">
+            <div class="chart-bar-row"><span class="chart-label">groceries</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:72%;"></div></div><span class="chart-value">$347</span></div>
+            <div class="chart-bar-row"><span class="chart-label">home</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:19%;"></div></div><span class="chart-value">$93</span></div>
+            <div class="chart-bar-row"><span class="chart-label">transport</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:11%;"></div></div><span class="chart-value">$52</span></div>
+            <div class="chart-bar-row"><span class="chart-label">health</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:4%;"></div></div><span class="chart-value">$18</span></div>
+            <div class="chart-bar-row"><span class="chart-label">dining</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:2%;"></div></div><span class="chart-value">$6</span></div>
+          </div>
+
+          <hr class="analytics-divider">
+          <div class="section-label">store</div>
+          <div style="margin:12px 0 20px;">
+            <div class="chart-bar-row"><span class="chart-label">whole foods</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:55%;"></div></div><span class="chart-value">$189</span></div>
+            <div class="chart-bar-row"><span class="chart-label">target</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:28%;"></div></div><span class="chart-value">$93</span></div>
+            <div class="chart-bar-row"><span class="chart-label">trader joe's</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:23%;"></div></div><span class="chart-value">$78</span></div>
+            <div class="chart-bar-row"><span class="chart-label">corner mkt</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:13%;"></div></div><span class="chart-value">$43</span></div>
+          </div>
+
+          <div class="analytics-swipe-hint">swipe for item watch &rarr;</div>
+          <div style="height:40px;"></div>
+        </div>
+      </div>
+
+      <!-- PAGE 2: Item Watch -->
+      <div class="subpage" id="analytics-page-itemwatch">
+        <div style="padding:0 24px;">
+          <div class="analytics-month">item watch</div>
+          <div style="font-family:var(--mono);font-size:10px;color:#444;margin-top:4px;letter-spacing:0.04em;">tracking price changes across purchases</div>
+
+          <hr class="analytics-divider" style="margin-top:16px;">
+
+          <div class="iw-item">
+            <div class="iw-header"><span class="iw-name">Oat Milk</span><span class="iw-price">$4.79 <span class="iw-up">&uarr;</span></span></div>
+            <div class="iw-meta">oatly &middot; avg $4.50 &middot; 8 purchases</div>
+            <div class="iw-spark">
+              <div class="iw-spark-bar" style="height:55%;"></div>
+              <div class="iw-spark-bar" style="height:60%;"></div>
+              <div class="iw-spark-bar" style="height:55%;"></div>
+              <div class="iw-spark-bar" style="height:65%;"></div>
+              <div class="iw-spark-bar" style="height:58%;"></div>
+              <div class="iw-spark-bar" style="height:55%;"></div>
+              <div class="iw-spark-bar" style="height:68%;"></div>
+              <div class="iw-spark-bar latest" style="height:78%;"></div>
+            </div>
+          </div>
+
+          <div class="iw-item">
+            <div class="iw-header"><span class="iw-name">Paper Towels</span><span class="iw-price">$8.29 <span class="iw-up">&uarr;</span></span></div>
+            <div class="iw-meta">seventh gen &middot; avg $7.80 &middot; 3 purchases</div>
+            <div class="iw-spark">
+              <div class="iw-spark-bar" style="height:70%;"></div>
+              <div class="iw-spark-bar" style="height:75%;"></div>
+              <div class="iw-spark-bar latest" style="height:90%;"></div>
+            </div>
+          </div>
+
+          <div class="iw-item">
+            <div class="iw-header"><span class="iw-name">Chicken Breast</span><span class="iw-price">$6.49/lb <span class="iw-down">&darr;</span></span></div>
+            <div class="iw-meta">foster farms &middot; avg $6.99/lb &middot; 5 purchases</div>
+            <div class="iw-spark">
+              <div class="iw-spark-bar" style="height:75%;"></div>
+              <div class="iw-spark-bar" style="height:80%;"></div>
+              <div class="iw-spark-bar" style="height:85%;"></div>
+              <div class="iw-spark-bar" style="height:70%;"></div>
+              <div class="iw-spark-bar latest" style="height:60%;"></div>
+            </div>
+          </div>
+
+          <div class="iw-item">
+            <div class="iw-header"><span class="iw-name">Greek Yogurt</span><span class="iw-price">$5.49 <span class="iw-flat">&mdash;</span></span></div>
+            <div class="iw-meta">fage &middot; avg $5.49 &middot; 4 purchases</div>
+            <div class="iw-spark">
+              <div class="iw-spark-bar" style="height:70%;"></div>
+              <div class="iw-spark-bar" style="height:70%;"></div>
+              <div class="iw-spark-bar" style="height:70%;"></div>
+              <div class="iw-spark-bar latest" style="height:70%;"></div>
+            </div>
+          </div>
+
+          <div class="iw-item">
+            <div class="iw-header"><span class="iw-name">Olive Oil</span><span class="iw-price">$8.99 <span class="iw-up">&uarr;</span></span></div>
+            <div class="iw-meta">california olive ranch &middot; avg $8.29 &middot; 3 purchases</div>
+            <div class="iw-spark">
+              <div class="iw-spark-bar" style="height:55%;"></div>
+              <div class="iw-spark-bar" style="height:70%;"></div>
+              <div class="iw-spark-bar latest" style="height:85%;"></div>
+            </div>
+          </div>
+
+          <div class="analytics-swipe-hint">&larr; swipe for spending</div>
+          <div style="height:40px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFERENCE — 3 views: products, brands, retailers -->
+  <div id="screen-products" class="screen">
+    <div style="padding-top:16px;">
+      <div class="app-name">grain</div>
+      <div style="font-family:var(--mono);font-size:10px;color:#444;margin-top:4px;letter-spacing:0.04em;">who gets paid when you buy things</div>
+    </div>
+    <div class="products-toggle" style="margin-top:16px;">
+      <button class="active" data-view="products">products</button>
+      <button data-view="brands">brands</button>
+      <button data-view="retailers">retailers</button>
+    </div>
+
+    <!-- PRODUCTS — what you buy -->
+    <div id="subview-products" class="subview active">
+      <div class="letter-header">B</div>
+      <div class="product-index-row"><span class="product-index-name">Bananas, Organic</span><span class="product-index-price">avg $2.49</span></div>
+      <div class="product-index-row"><span class="product-index-name">Bread, Sourdough</span><span class="product-index-price">avg $5.49</span></div>
+      <div class="letter-header">C</div>
+      <div class="product-index-row"><span class="product-index-name">Chicken Breast</span><span class="product-index-price">avg $6.99/lb</span></div>
+      <div class="product-index-row"><span class="product-index-name">Cigarettes, Marlboro</span><span class="product-index-price">avg $12.50</span></div>
+      <div class="product-index-row"><span class="product-index-name">Coffee, drip</span><span class="product-index-price">avg $5.80</span></div>
+      <div class="letter-header">M</div>
+      <div class="product-index-row"><span class="product-index-name">Milk, Whole (1 gal)</span><span class="product-index-price">avg $4.99</span></div>
+      <div class="product-index-row"><span class="product-index-name">Mixed Greens</span><span class="product-index-price">avg $3.99</span></div>
+      <div class="letter-header">N</div>
+      <div class="product-index-row"><span class="product-index-name">Netflix (subscription)</span><span class="product-index-price">$15.49/mo</span></div>
+      <div class="letter-header">O</div>
+      <div class="product-index-row"><span class="product-index-name">Oat Milk</span><span class="product-index-price">avg $4.50</span></div>
+      <div class="letter-header">P</div>
+      <div class="product-index-row"><span class="product-index-name">Paper Towels</span><span class="product-index-price">avg $7.80</span></div>
+      <div class="letter-header">T</div>
+      <div class="product-index-row"><span class="product-index-name">T-shirt, plain</span><span class="product-index-price">avg $24.00</span></div>
+    </div>
+
+    <!-- BRANDS — who makes it -->
+    <div id="subview-brands" class="subview">
+      <div style="font-family:var(--mono);font-size:9px;color:#444;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:16px;">who makes what you buy</div>
+
+      <div class="brand-card">
+        <div class="brand-card-name">Oatly</div>
+        <div class="brand-card-total">$36.00</div>
+        <div class="brand-card-meta">oat milk &middot; 8 purchases &middot; avg $4.50</div>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-name">Seventh Generation</div>
+        <div class="brand-card-total">$23.40</div>
+        <div class="brand-card-meta">paper towels &middot; 3 purchases &middot; avg $7.80</div>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-name">Foster Farms</div>
+        <div class="brand-card-total">$34.95</div>
+        <div class="brand-card-meta">chicken breast &middot; 5 purchases &middot; avg $6.99/lb</div>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-name">Fage</div>
+        <div class="brand-card-total">$21.96</div>
+        <div class="brand-card-meta">greek yogurt &middot; 4 purchases &middot; avg $5.49</div>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-name">Marlboro</div>
+        <div class="brand-card-total">$50.00</div>
+        <div class="brand-card-meta">cigarettes &middot; 4 purchases &middot; avg $12.50</div>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-name">Uniqlo</div>
+        <div class="brand-card-total">$72.00</div>
+        <div class="brand-card-meta">t-shirts, socks &middot; 3 purchases &middot; avg $24.00</div>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-name">Netflix</div>
+        <div class="brand-card-total">$15.49</div>
+        <div class="brand-card-meta">streaming &middot; recurring &middot; $15.49/mo</div>
+      </div>
+    </div>
+
+    <!-- RETAILERS — where you buy -->
+    <div id="subview-retailers" class="subview">
+      <div style="font-family:var(--mono);font-size:9px;color:#444;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:16px;">where your money goes</div>
+
+      <div class="brand-card">
+        <div class="brand-card-name">Whole Foods</div>
+        <div class="brand-card-total">$189.40</div>
+        <div class="brand-card-meta">6 receipts &middot; 34 products &middot; groceries</div>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-name">Target</div>
+        <div class="brand-card-total">$93.47</div>
+        <div class="brand-card-meta">1 receipt &middot; 7 products &middot; home</div>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-name">Trader Joe's</div>
+        <div class="brand-card-total">$78.20</div>
+        <div class="brand-card-meta">1 receipt &middot; 14 products &middot; groceries</div>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-name">Shell Gas</div>
+        <div class="brand-card-total">$52.10</div>
+        <div class="brand-card-meta">1 receipt &middot; 1 product &middot; transport</div>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-name">Corner Market</div>
+        <div class="brand-card-total">$42.90</div>
+        <div class="brand-card-meta">1 receipt &middot; 5 products &middot; groceries</div>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-name">CVS Pharmacy</div>
+        <div class="brand-card-total">$18.12</div>
+        <div class="brand-card-meta">1 receipt &middot; 2 products &middot; health</div>
+      </div>
+    </div>
+    <div style="height:40px;"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="screen-settings" class="screen">
+    <div style="padding-top:16px;"><div class="app-name">grain</div><div class="screen-title" style="margin-bottom:24px;">Settings</div></div>
+    <div class="setting-row"><div class="setting-label">Categories</div><div class="setting-desc">Customize the categories used to organize your receipts.</div></div>
+    <div class="setting-row"><div class="setting-label">Tax Deductions</div><div class="setting-desc">Configure which categories qualify for tax deduction tracking.</div></div>
+    <div class="setting-row"><div class="setting-label">Export Data</div><div class="setting-desc">Download your receipts and analytics as CSV or PDF.</div></div>
+    <div class="setting-row"><div class="setting-label">About Grain</div><div class="setting-desc">Version, acknowledgements, and privacy policy.</div></div>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button id="tab-receipts" class="active" data-tab="receipts">receipts</button>
+    <button id="tab-scan" data-tab="scan">scan</button>
+    <button id="tab-analytics" data-tab="analytics">analytics</button>
+    <button id="tab-products" data-tab="products">index</button>
+    <button id="tab-settings" data-tab="settings">settings</button>
+  </div>
+</div>
+
+<script>
+  var lastDetailScreen = null;
+
+  function hideAll() {
+    document.querySelectorAll('.screen, .scan-screen, .proof-sheet').forEach(function(s) {
+      s.classList.remove('active');
+    });
+    // Close any open dropdowns
+    document.querySelectorAll('.dots-dropdown').forEach(function(d) { d.classList.remove('open'); });
+  }
+
+  function showScreen(name) {
+    hideAll();
+    document.querySelectorAll('.tab-bar button').forEach(function(b) { b.classList.remove('active'); });
+    if (name === 'scan') {
+      document.getElementById('screen-scan').classList.add('active');
+    } else {
+      var el = document.getElementById('screen-' + name);
+      if (el) el.classList.add('active');
+    }
+    var tab = document.getElementById('tab-' + name);
+    if (tab) tab.classList.add('active');
+  }
+
+  // Tab bar
+  document.querySelectorAll('.tab-bar button').forEach(function(btn) {
+    btn.addEventListener('click', function() { showScreen(this.getAttribute('data-tab')); });
+  });
+
+  // Receipt list -> detail
+  document.querySelectorAll('.receipt-row[data-detail]').forEach(function(row) {
+    row.addEventListener('click', function() {
+      var id = this.getAttribute('data-detail');
+      hideAll();
+      lastDetailScreen = 'detail-' + id;
+      var detail = document.getElementById('detail-' + id);
+      if (detail) detail.classList.add('active');
+    });
+  });
+
+  // Back buttons (from detail -> receipts)
+  document.querySelectorAll('.detail-back[data-back]').forEach(function(btn) {
+    btn.addEventListener('click', function() { showScreen(this.getAttribute('data-back')); });
+  });
+
+  // Back from item analytics -> last detail screen
+  document.querySelectorAll('.detail-back[data-back-item]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      hideAll();
+      if (lastDetailScreen) {
+        document.getElementById(lastDetailScreen).classList.add('active');
+      } else {
+        showScreen('receipts');
+      }
+    });
+  });
+
+  // Three-dot menu toggle
+  document.querySelectorAll('.dots-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var id = this.getAttribute('data-dots');
+      var dropdown = document.getElementById('dots-' + id);
+      var isOpen = dropdown.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.dots-dropdown').forEach(function(d) { d.classList.remove('open'); });
+      if (!isOpen) dropdown.classList.add('open');
+    });
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.dots-dropdown').forEach(function(d) { d.classList.remove('open'); });
+  });
+
+  // View scan action
+  document.querySelectorAll('[data-scan-view]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var id = this.getAttribute('data-scan-view');
+      document.querySelectorAll('.dots-dropdown').forEach(function(d) { d.classList.remove('open'); });
+      var overlay = document.getElementById('scan-overlay-' + id);
+      if (overlay) overlay.classList.add('open');
+    });
+  });
+
+  // Close scan overlay
+  document.querySelectorAll('[data-close-scan]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = this.getAttribute('data-close-scan');
+      document.getElementById('scan-overlay-' + id).classList.remove('open');
+    });
+  });
+
+  // Clickable items -> item analytics
+  document.querySelectorAll('.item-row.clickable').forEach(function(row) {
+    row.addEventListener('click', function() {
+      hideAll();
+      document.getElementById('screen-item-analytics').classList.add('active');
+    });
+  });
+
+  // Capture -> proof
+  document.getElementById('captureBtn').addEventListener('click', function() {
+    hideAll();
+    document.getElementById('screen-proof').classList.add('active');
+    document.querySelectorAll('.tab-bar button').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById('tab-scan').classList.add('active');
+  });
+
+  // Proof save
+  document.getElementById('proofSaveBtn').addEventListener('click', function() { showScreen('receipts'); });
+
+  // Product/Brand toggle
+  document.querySelectorAll('.products-toggle button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.products-toggle button').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      document.querySelectorAll('.subview').forEach(function(s) { s.classList.remove('active'); });
+      document.getElementById('subview-' + this.getAttribute('data-view')).classList.add('active');
+    });
+  });
+
+  // Analytics sub-page swipe
+  var analyticsPage = 0;
+  var touchStartX = 0;
+  var analyticsEl = document.getElementById('screen-analytics');
+
+  function setAnalyticsPage(page) {
+    analyticsPage = page;
+    var subpages = document.querySelectorAll('#analytics-track .subpage');
+    subpages.forEach(function(sp) {
+      sp.style.transform = 'translateX(-' + (page * 100) + '%)';
+    });
+    document.getElementById('dot-spending').classList.toggle('active', page === 0);
+    document.getElementById('dot-itemwatch').classList.toggle('active', page === 1);
+  }
+
+  analyticsEl.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  analyticsEl.addEventListener('touchend', function(e) {
+    var diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0 && analyticsPage === 0) setAnalyticsPage(1);
+      else if (diff < 0 && analyticsPage === 1) setAnalyticsPage(0);
+    }
+  }, { passive: true });
+
+  // Click on dots to switch pages too
+  document.getElementById('dot-spending').addEventListener('click', function() { setAnalyticsPage(0); });
+  document.getElementById('dot-itemwatch').addEventListener('click', function() { setAnalyticsPage(1); });
+
+  // Mouse drag fallback for desktop
+  var mouseDown = false, mouseStartX = 0;
+  analyticsEl.addEventListener('mousedown', function(e) { mouseDown = true; mouseStartX = e.clientX; });
+  analyticsEl.addEventListener('mouseup', function(e) {
+    if (!mouseDown) return;
+    mouseDown = false;
+    var diff = mouseStartX - e.clientX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0 && analyticsPage === 0) setAnalyticsPage(1);
+      else if (diff < 0 && analyticsPage === 1) setAnalyticsPage(0);
+    }
+  });
+</script>
+</body>
+</html>
