@@ -7,6 +7,7 @@ Welcome to the Grain project wiki. This directory mirrors the [GitHub Wiki](../.
 | Page | Description |
 |------|-------------|
 | [Current State](Current-State.md) | Architecture audit, what works, what's broken, priority next steps |
+| [Redesign Spec](Redesign-Spec.md) | Inspiration analysis, design system, and three wireframe directions |
 | [ADR Index](adr/README.md) | Architecture Decision Records |
 
 ## Architecture Decision Records
