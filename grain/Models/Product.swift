@@ -14,6 +14,7 @@ final class Product {
     var priceHistory: [PricePoint]
     var isTaxable: Bool
     var taxCategory: String?
+    @Attribute(originalName: "description")
     var productDescription: String?
     var imageUrl: String?
     var createdAt: Date
