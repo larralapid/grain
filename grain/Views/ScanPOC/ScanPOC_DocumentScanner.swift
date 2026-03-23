@@ -3,6 +3,8 @@
 // Related: #21
 
 import SwiftUI
+import UIKit
+import Observation
 import VisionKit
 import Vision
 import PhotosUI
