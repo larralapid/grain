@@ -50,8 +50,9 @@ This document defines the test cases for grain's automated test suite. Tests cov
 | BT-02 | Create credit transaction | Type is `.credit` |
 | BT-03 | TransactionType raw values | Correct string values for all cases |
 
-### 6. OCR Parser Tests (`ReceiptScannerService`)
+### 6. Planned OCR Parser Tests (`ReceiptScannerService`)
 
+_Note: The following OCR parser test cases describe planned coverage. As of now, `grainTests/grainTests.swift` only verifies the initial state of `ReceiptScannerService` and does not yet implement these parsing/extraction tests._
 | ID | Test Case | Expected |
 |----|-----------|----------|
 | OCR-01 | Extract amount "$12.99" | Returns Decimal(12.99) |
