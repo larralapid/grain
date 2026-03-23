@@ -1,0 +1,55 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+labels: ["type: feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please fill out the sections below.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear description of the feature you'd like to see.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why is this feature useful? What problem does it solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: How do you think this should work?
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or features you've considered?
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - "scanning"
+        - "analytics"
+        - "export"
+        - "integrations"
+        - "design"
+        - "other"
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "low"
+        - "medium"
+        - "high"
+    validations:
+      required: true
