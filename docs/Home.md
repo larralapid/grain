@@ -1,6 +1,6 @@
-# Grain — Wiki
+# Grain — Docs
 
-Welcome to the Grain project wiki. This directory mirrors the [GitHub Wiki](../../wiki) and serves as the source of truth for project documentation.
+Welcome to the Grain project docs. This directory serves as the source of truth for project documentation.
 
 ## Pages
 
