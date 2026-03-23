@@ -355,7 +355,7 @@ struct ScanPOC_DocumentScanner: View {
                         Text(processor.merchantName.uppercased())
                             .font(GrainTheme.mono(14, weight: .semibold))
                             .tracking(0.8)
-                            .foregroundColor(Color(red: 0.067, green: 0.067, blue: 0.067))
+                            .foregroundColor(GrainTheme.textPrimary)
                             .padding(.bottom, 4)
 
                         Text(Date.now.formatted(.dateTime.month(.twoDigits).day(.twoDigits).year() .hour().minute()))
@@ -374,7 +374,7 @@ struct ScanPOC_DocumentScanner: View {
                             Spacer()
                             Text("\(processor.itemCount)")
                                 .font(GrainTheme.mono(11))
-                                .foregroundColor(Color(red: 0.133, green: 0.133, blue: 0.133))
+                                .foregroundColor(GrainTheme.textPrimary)
                         }
                         .padding(.vertical, 4)
 
@@ -385,7 +385,7 @@ struct ScanPOC_DocumentScanner: View {
                             Spacer()
                             Text("\(scannedPages.count)")
                                 .font(GrainTheme.mono(11))
-                                .foregroundColor(Color(red: 0.133, green: 0.133, blue: 0.133))
+                                .foregroundColor(GrainTheme.textPrimary)
                         }
                         .padding(.vertical, 4)
 
@@ -395,11 +395,11 @@ struct ScanPOC_DocumentScanner: View {
                             HStack {
                                 Text("TOTAL")
                                     .font(GrainTheme.mono(14, weight: .semibold))
-                                    .foregroundColor(Color(red: 0.067, green: 0.067, blue: 0.067))
+                                    .foregroundColor(GrainTheme.textPrimary)
                                 Spacer()
                                 Text(processor.total)
                                     .font(GrainTheme.mono(14, weight: .semibold))
-                                    .foregroundColor(Color(red: 0.067, green: 0.067, blue: 0.067))
+                                    .foregroundColor(GrainTheme.textPrimary)
                             }
                             .padding(.top, 6)
                         }
@@ -423,7 +423,7 @@ struct ScanPOC_DocumentScanner: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 20)
-                    .background(Color(red: 1, green: 0.996, blue: 0.973))
+                    .background(GrainTheme.surface)
 
                     thermalTornEdge
                 }
@@ -468,7 +468,7 @@ struct ScanPOC_DocumentScanner: View {
         HStack(spacing: 2) {
             ForEach(0..<50, id: \.self) { _ in
                 Rectangle()
-                    .fill(Color(red: 1, green: 0.996, blue: 0.973))
+                    .fill(GrainTheme.surface)
                     .frame(width: 4, height: 8)
             }
         }
