@@ -88,7 +88,13 @@ final class DocumentScanProcessor {
                 request.usesLanguageCorrection = true
 
                 let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-                try? handler.perform([request])
+                do {
+                    try handler.perform([request])
+                } catch {
+                    // If the handler throws, the request's completion handler will never be called.
+                    // Ensure the continuation is still resumed to avoid hanging.
+                    continuation.resume(returning: "")
+                }
             }
 
             allText += text + "\n---\n"
