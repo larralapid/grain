@@ -36,9 +36,12 @@ final class LiveCameraManager: NSObject {
     var detectedRectangle: VNRectangleObservation?
     var isAuthorized = false
     var capturedImage: UIImage?
+    var confirmedFrames: [UIImage] = []
 
     private let videoOutput = AVCaptureVideoDataOutput()
     private let processingQueue = DispatchQueue(label: "grain.camera.processing")
+    private let ciContext = CIContext()
+    private var captureRequested = false
 
     func requestAccess() async {
         let status = AVCaptureDevice.authorizationStatus(for: .video)
@@ -89,9 +92,7 @@ final class LiveCameraManager: NSObject {
     }
 
     func captureCurrentFrame() {
-        // Capture is handled via the sample buffer delegate
-        // The next frame will be saved when capturedImage is nil and a rectangle is detected
-        // For this POC, we just flag that a capture is requested
+        captureRequested = true
     }
 }
 
@@ -102,6 +103,18 @@ extension LiveCameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
         from connection: AVCaptureConnection
     ) {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+
+        // Capture current frame if requested
+        if captureRequested {
+            captureRequested = false
+            let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+            if let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) {
+                let image = UIImage(cgImage: cgImage, scale: 1.0, orientation: .right)
+                DispatchQueue.main.async { [weak self] in
+                    self?.capturedImage = image
+                }
+            }
+        }
 
         let request = VNDetectRectanglesRequest { [weak self] request, error in
             guard error == nil,
@@ -186,6 +199,17 @@ struct ScanPOC_LiveCamera: View {
         }
         .onDisappear {
             cameraManager.stopSession()
+        }
+        .sheet(item: Binding(
+            get: { cameraManager.capturedImage.map { CapturedImageItem(image: $0) } },
+            set: { if $0 == nil { cameraManager.capturedImage = nil } }
+        )) { item in
+            CapturedImageSheet(image: item.image) {
+                cameraManager.capturedImage = nil
+            } onConfirm: {
+                cameraManager.confirmedFrames.append(item.image)
+                cameraManager.capturedImage = nil
+            }
         }
     }
 
@@ -331,6 +355,94 @@ struct ScanPOC_LiveCamera: View {
         try? device.lockForConfiguration()
         device.torchMode = on ? .on : .off
         device.unlockForConfiguration()
+    }
+}
+
+// MARK: - Captured Image Sheet
+
+private struct CapturedImageItem: Identifiable {
+    let id = UUID()
+    let image: UIImage
+}
+
+private struct CapturedImageSheet: View {
+    let image: UIImage
+    let onDismiss: () -> Void
+    let onConfirm: () -> Void
+
+    var body: some View {
+        ZStack {
+            GrainTheme.bg.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Text("CAPTURED FRAME")
+                        .font(GrainTheme.mono(11, weight: .semibold))
+                        .tracking(1.5)
+                        .foregroundColor(GrainTheme.textPrimary)
+
+                    Spacer()
+
+                    Button {
+                        onDismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 12))
+                            .foregroundColor(GrainTheme.textSecondary)
+                            .frame(width: 32, height: 32)
+                            .overlay(Rectangle().stroke(GrainTheme.border, lineWidth: 1))
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 16)
+
+                Rectangle()
+                    .fill(GrainTheme.border)
+                    .frame(height: 1)
+
+                // Captured image
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .padding(20)
+
+                Spacer()
+
+                Rectangle()
+                    .fill(GrainTheme.border)
+                    .frame(height: 1)
+
+                // Footer actions
+                HStack(spacing: 12) {
+                    Button {
+                        onDismiss()
+                    } label: {
+                        Text("RETAKE")
+                            .font(GrainTheme.mono(11))
+                            .tracking(1)
+                            .foregroundColor(GrainTheme.textSecondary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .overlay(Rectangle().stroke(GrainTheme.border, lineWidth: 1))
+                    }
+
+                    Button {
+                        onConfirm()
+                    } label: {
+                        Text("USE PHOTO")
+                            .font(GrainTheme.mono(11, weight: .semibold))
+                            .tracking(1)
+                            .foregroundColor(GrainTheme.bg)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(GrainTheme.textPrimary)
+                    }
+                }
+                .padding(20)
+            }
+        }
     }
 }
 
