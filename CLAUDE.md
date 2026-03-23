@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Grain is a native iOS app (SwiftUI + SwiftData, iOS 17+) that scans receipts via on-device OCR and tracks expenses at granular product/brand level. Currently at **proof-of-concept stage** (~3,500 LOC, 17 Swift files).
+Grain is a native iOS app (SwiftUI + SwiftData, iOS 17+) that scans receipts via on-device OCR and tracks expenses at granular product/brand level. Currently at **proof-of-concept stage** (~3,500 LOC, 20 Swift files).
 
 ## Architecture
 
@@ -30,7 +30,7 @@ Grain is a native iOS app (SwiftUI + SwiftData, iOS 17+) that scans receipts via
 - `docs/Home.md` — Doc index
 - `docs/Current-State.md` — Architecture audit
 - `docs/Redesign-Spec.md` — Design system and wireframes
-- `docs/adr/` — Architecture Decision Records (ADR-0001 through ADR-0005)
+- `docs/adr/` — Architecture Decision Records (ADR-0001 through ADR-0006)
 - `CHANGELOG.md` — Keep a Changelog format
 
 ## Conventions
@@ -59,7 +59,7 @@ No CLI build tools, no SPM, no CocoaPods. Pure Xcode project.
 - `BankTransaction` model exists but has no UI or import flow
 - `SpendingAnalytics` should be a plain struct, not a persisted `@Model`
 - OCR parser is regex-based PoC — not production-grade
-- Zero test coverage
+- Test coverage is limited to model and service initialisation; OCR parsing internals are not yet unit-tested (private methods)
 - All errors swallowed with `print()`
 - Receipt image (`imageData` field) never saved
 
