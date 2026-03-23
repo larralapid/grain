@@ -5,6 +5,8 @@
 import SwiftUI
 import AVFoundation
 import Vision
+import UIKit
+import Observation
 
 // MARK: - Capture State
 
