@@ -35,6 +35,7 @@ final class GuidedCameraManager: NSObject {
     var captureState: GuidedCaptureState = .searching
     var detectedRectangle: VNRectangleObservation?
     var capturedImages: [UIImage] = []
+    var errorMessage: String?
     var scanCount: Int { capturedImages.count }
 
     private let videoOutput = AVCaptureVideoDataOutput()
@@ -50,6 +51,7 @@ final class GuidedCameraManager: NSObject {
     private let stabilityThreshold: CGFloat = 0.02
     private let requiredStableFrames = 45 // ~1.5s at 30fps
     private var isCapturing = false
+    private var isConfigured = false
 
     func requestAccess() async {
         let status = AVCaptureDevice.authorizationStatus(for: .video)
@@ -65,32 +67,56 @@ final class GuidedCameraManager: NSObject {
 
     func startSession() {
         guard isAuthorized else { return }
+        if isConfigured {
+            processingQueue.async { [weak self] in
+                guard let self, !self.session.isRunning else { return }
+                self.session.startRunning()
+            }
+            return
+        }
 
         session.beginConfiguration()
         session.sessionPreset = .photo
 
-        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
-              let input = try? AVCaptureDeviceInput(device: device) else {
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
             session.commitConfiguration()
+            errorMessage = "No back camera is available on this device."
             return
         }
 
-        if session.canAddInput(input) {
+        do {
+            let input = try AVCaptureDeviceInput(device: device)
+            guard session.canAddInput(input) else {
+                session.commitConfiguration()
+                errorMessage = "The camera input could not be attached."
+                return
+            }
             session.addInput(input)
+        } catch {
+            session.commitConfiguration()
+            errorMessage = "The camera could not start: \(error.localizedDescription)"
+            return
         }
 
         videoOutput.setSampleBufferDelegate(self, queue: processingQueue)
         videoOutput.alwaysDiscardsLateVideoFrames = true
 
-        if session.canAddOutput(videoOutput) {
-            session.addOutput(videoOutput)
+        guard session.canAddOutput(videoOutput) else {
+            session.commitConfiguration()
+            errorMessage = "Live frame output is unavailable."
+            return
         }
+        session.addOutput(videoOutput)
 
-        if session.canAddOutput(photoOutput) {
-            session.addOutput(photoOutput)
+        guard session.canAddOutput(photoOutput) else {
+            session.commitConfiguration()
+            errorMessage = "Still photo capture is unavailable."
+            return
         }
+        session.addOutput(photoOutput)
 
         session.commitConfiguration()
+        isConfigured = true
 
         hapticImpact.prepare()
         hapticHeavy.prepare()
@@ -172,8 +198,14 @@ extension GuidedCameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
               let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
 
         let request = VNDetectRectanglesRequest { [weak self] request, error in
-            guard error == nil,
-                  let results = request.results as? [VNRectangleObservation],
+            if let error {
+                DispatchQueue.main.async {
+                    self?.errorMessage = "Rectangle detection failed: \(error.localizedDescription)"
+                }
+                return
+            }
+
+            guard let results = request.results as? [VNRectangleObservation],
                   let bestRect = results.first else {
                 DispatchQueue.main.async {
                     self?.detectedRectangle = nil
@@ -200,7 +232,13 @@ extension GuidedCameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
         request.maximumAspectRatio = 1.0
 
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:])
-        try? handler.perform([request])
+        do {
+            try handler.perform([request])
+        } catch {
+            DispatchQueue.main.async { [weak self] in
+                self?.errorMessage = "Rectangle detection failed: \(error.localizedDescription)"
+            }
+        }
     }
 }
 
@@ -210,10 +248,20 @@ extension GuidedCameraManager: AVCapturePhotoCaptureDelegate {
         didFinishProcessingPhoto photo: AVCapturePhoto,
         error: Error?
     ) {
-        guard error == nil,
-              let data = photo.fileDataRepresentation(),
+        if let error {
+            DispatchQueue.main.async { [weak self] in
+                self?.isCapturing = false
+                self?.errorMessage = "Photo capture failed: \(error.localizedDescription)"
+            }
+            return
+        }
+
+        guard let data = photo.fileDataRepresentation(),
               let image = UIImage(data: data) else {
-            isCapturing = false
+            DispatchQueue.main.async { [weak self] in
+                self?.isCapturing = false
+                self?.errorMessage = "Photo capture failed because the image data was unreadable."
+            }
             return
         }
 
@@ -251,6 +299,24 @@ struct ScanPOC_GuidedCapture: View {
         .onDisappear {
             cameraManager.stopSession()
         }
+        .alert("Scan error", isPresented: errorAlertIsPresented) {
+            Button("OK") {
+                cameraManager.errorMessage = nil
+            }
+        } message: {
+            Text(cameraManager.errorMessage ?? "")
+        }
+    }
+
+    private var errorAlertIsPresented: Binding<Bool> {
+        Binding(
+            get: { cameraManager.errorMessage != nil },
+            set: { isPresented in
+                if !isPresented {
+                    cameraManager.errorMessage = nil
+                }
+            }
+        )
     }
 
     // MARK: - Camera Interface

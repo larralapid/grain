@@ -13,6 +13,7 @@ import PhotosUI
 
 struct DocumentScannerSheet: UIViewControllerRepresentable {
     @Binding var scannedPages: [UIImage]
+    let onError: (String) -> Void
     @Environment(\.dismiss) private var dismiss
 
     func makeUIViewController(context: Context) -> VNDocumentCameraViewController {
@@ -54,6 +55,7 @@ struct DocumentScannerSheet: UIViewControllerRepresentable {
             _ controller: VNDocumentCameraViewController,
             didFailWithError error: Error
         ) {
+            parent.onError("Document scanning failed: \(error.localizedDescription)")
             parent.dismiss()
         }
     }
@@ -68,41 +70,55 @@ final class DocumentScanProcessor {
     var merchantName = ""
     var total = ""
     var itemCount = 0
+    var errorMessage: String?
 
     func processPages(_ pages: [UIImage]) async {
         isProcessing = true
+        errorMessage = nil
         var allText = ""
 
         for page in pages {
             guard let cgImage = page.cgImage else { continue }
 
-            let text = await withCheckedContinuation { continuation in
-                let request = VNRecognizeTextRequest { request, _ in
-                    let observations = request.results as? [VNRecognizedTextObservation] ?? []
-                    let pageText = observations
-                        .compactMap { $0.topCandidates(1).first?.string }
-                        .joined(separator: "\n")
-                    continuation.resume(returning: pageText)
-                }
-                request.recognitionLevel = .accurate
-                request.usesLanguageCorrection = true
-
-                let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-                do {
-                    try handler.perform([request])
-                } catch {
-                    // If the handler throws, the request's completion handler will never be called.
-                    // Ensure the continuation is still resumed to avoid hanging.
-                    continuation.resume(returning: "")
-                }
+            do {
+                let text = try await recognizeText(in: cgImage)
+                allText += text + "\n---\n"
+            } catch {
+                errorMessage = "Text recognition failed: \(error.localizedDescription)"
+                break
             }
-
-            allText += text + "\n---\n"
         }
 
         ocrText = allText
         parseBasicFields(from: allText)
         isProcessing = false
+    }
+
+    private func recognizeText(in cgImage: CGImage) async throws -> String {
+        try await withCheckedThrowingContinuation { continuation in
+            let request = VNRecognizeTextRequest { request, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                let observations = request.results as? [VNRecognizedTextObservation] ?? []
+                let pageText = observations
+                    .compactMap { $0.topCandidates(1).first?.string }
+                    .joined(separator: "\n")
+                continuation.resume(returning: pageText)
+            }
+            request.recognitionLevel = .accurate
+            request.usesLanguageCorrection = true
+
+            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+
+            do {
+                try handler.perform([request])
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
     }
 
     private func parseBasicFields(from text: String) {
@@ -159,24 +175,50 @@ struct ScanPOC_DocumentScanner: View {
             }
         }
         .sheet(isPresented: $isShowingScanner) {
-            DocumentScannerSheet(scannedPages: $scannedPages)
+            DocumentScannerSheet(scannedPages: $scannedPages) { message in
+                processor.errorMessage = message
+            }
         }
         .onChange(of: scannedPages) { _, pages in
             guard !pages.isEmpty else { return }
             Task {
                 await processor.processPages(pages)
-                showProofSheet = true
+                showProofSheet = processor.errorMessage == nil
             }
         }
         .onChange(of: selectedPhotoItem) { _, item in
             guard let item else { return }
             Task {
-                if let data = try? await item.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
+                do {
+                    guard let data = try await item.loadTransferable(type: Data.self),
+                          let image = UIImage(data: data) else {
+                        processor.errorMessage = "The selected photo could not be loaded."
+                        return
+                    }
                     scannedPages = [image]
+                } catch {
+                    processor.errorMessage = "Photo import failed: \(error.localizedDescription)"
                 }
             }
         }
+        .alert("Scan error", isPresented: errorAlertIsPresented) {
+            Button("OK") {
+                processor.errorMessage = nil
+            }
+        } message: {
+            Text(processor.errorMessage ?? "")
+        }
+    }
+
+    private var errorAlertIsPresented: Binding<Bool> {
+        Binding(
+            get: { processor.errorMessage != nil },
+            set: { isPresented in
+                if !isPresented {
+                    processor.errorMessage = nil
+                }
+            }
+        )
     }
 
     // MARK: - Empty State

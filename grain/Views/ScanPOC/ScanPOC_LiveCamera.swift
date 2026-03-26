@@ -37,11 +37,13 @@ final class LiveCameraManager: NSObject {
     var isAuthorized = false
     var capturedImage: UIImage?
     var confirmedFrames: [UIImage] = []
+    var errorMessage: String?
 
     private let videoOutput = AVCaptureVideoDataOutput()
+    private let photoOutput = AVCapturePhotoOutput()
     private let processingQueue = DispatchQueue(label: "grain.camera.processing")
-    private let ciContext = CIContext()
-    private var captureRequested = false
+    private var isConfigured = false
+    private var isCapturing = false
 
     func requestAccess() async {
         let status = AVCaptureDevice.authorizationStatus(for: .video)
@@ -57,42 +59,82 @@ final class LiveCameraManager: NSObject {
 
     func startSession() {
         guard isAuthorized else { return }
+        if isConfigured {
+            startRunning()
+            return
+        }
 
         session.beginConfiguration()
         session.sessionPreset = .photo
 
-        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
-              let input = try? AVCaptureDeviceInput(device: device) else {
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
             session.commitConfiguration()
+            errorMessage = "No back camera is available on this device."
             return
         }
 
-        if session.canAddInput(input) {
+        do {
+            let input = try AVCaptureDeviceInput(device: device)
+            guard session.canAddInput(input) else {
+                session.commitConfiguration()
+                errorMessage = "The camera input could not be attached."
+                return
+            }
             session.addInput(input)
+        } catch {
+            session.commitConfiguration()
+            errorMessage = "The camera could not start: \(error.localizedDescription)"
+            return
         }
 
         videoOutput.setSampleBufferDelegate(self, queue: processingQueue)
         videoOutput.alwaysDiscardsLateVideoFrames = true
 
-        if session.canAddOutput(videoOutput) {
-            session.addOutput(videoOutput)
+        guard session.canAddOutput(videoOutput) else {
+            session.commitConfiguration()
+            errorMessage = "Live frame output is unavailable."
+            return
         }
+        session.addOutput(videoOutput)
+
+        guard session.canAddOutput(photoOutput) else {
+            session.commitConfiguration()
+            errorMessage = "Still photo capture is unavailable."
+            return
+        }
+        session.addOutput(photoOutput)
 
         session.commitConfiguration()
-
-        processingQueue.async { [weak self] in
-            self?.session.startRunning()
-        }
+        isConfigured = true
+        startRunning()
     }
 
     func stopSession() {
         processingQueue.async { [weak self] in
-            self?.session.stopRunning()
+            guard let self, self.session.isRunning else { return }
+            self.session.stopRunning()
         }
     }
 
     func captureCurrentFrame() {
-        captureRequested = true
+        guard !isCapturing else { return }
+        isCapturing = true
+
+        let settings = AVCapturePhotoSettings()
+        settings.flashMode = .off
+        photoOutput.capturePhoto(with: settings, delegate: self)
+    }
+
+    func clearCapture() {
+        capturedImage = nil
+        isCapturing = false
+    }
+
+    private func startRunning() {
+        processingQueue.async { [weak self] in
+            guard let self, !self.session.isRunning else { return }
+            self.session.startRunning()
+        }
     }
 }
 
@@ -102,32 +144,29 @@ extension LiveCameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-
-        // Capture current frame if requested
-        if captureRequested {
-            captureRequested = false
-            let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
-            if let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) {
-                let image = UIImage(cgImage: cgImage, scale: 1.0, orientation: .right)
-                DispatchQueue.main.async { [weak self] in
-                    self?.capturedImage = image
-                }
-            }
-        }
+        guard !isCapturing,
+              let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
 
         let request = VNDetectRectanglesRequest { [weak self] request, error in
-            guard error == nil,
-                  let results = request.results as? [VNRectangleObservation],
+            guard let self else { return }
+
+            if let error {
+                DispatchQueue.main.async {
+                    self.errorMessage = "Rectangle detection failed: \(error.localizedDescription)"
+                }
+                return
+            }
+
+            guard let results = request.results as? [VNRectangleObservation],
                   let bestRect = results.first else {
                 DispatchQueue.main.async {
-                    self?.detectedRectangle = nil
+                    self.detectedRectangle = nil
                 }
                 return
             }
 
             DispatchQueue.main.async {
-                self?.detectedRectangle = bestRect
+                self.detectedRectangle = bestRect
             }
         }
 
@@ -137,7 +176,44 @@ extension LiveCameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
         request.maximumAspectRatio = 1.0
 
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:])
-        try? handler.perform([request])
+
+        do {
+            try handler.perform([request])
+        } catch {
+            DispatchQueue.main.async { [weak self] in
+                self?.errorMessage = "Rectangle detection failed: \(error.localizedDescription)"
+            }
+        }
+    }
+}
+
+extension LiveCameraManager: AVCapturePhotoCaptureDelegate {
+    func photoOutput(
+        _ output: AVCapturePhotoOutput,
+        didFinishProcessingPhoto photo: AVCapturePhoto,
+        error: Error?
+    ) {
+        if let error {
+            DispatchQueue.main.async { [weak self] in
+                self?.isCapturing = false
+                self?.errorMessage = "Photo capture failed: \(error.localizedDescription)"
+            }
+            return
+        }
+
+        guard let data = photo.fileDataRepresentation(),
+              let image = UIImage(data: data) else {
+            DispatchQueue.main.async { [weak self] in
+                self?.isCapturing = false
+                self?.errorMessage = "Photo capture failed because the image data was unreadable."
+            }
+            return
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.capturedImage = image
+            self?.isCapturing = false
+        }
     }
 }
 
@@ -168,8 +244,6 @@ struct EdgeDetectionOverlay: View {
     }
 
     private func convertPoint(_ point: CGPoint, in size: CGSize) -> CGPoint {
-        // Vision coordinates: origin bottom-left, normalized 0-1
-        // SwiftUI coordinates: origin top-left
         CGPoint(
             x: point.x * size.width,
             y: (1 - point.y) * size.height
@@ -211,21 +285,36 @@ struct ScanPOC_LiveCamera: View {
                 cameraManager.capturedImage = nil
             }
         }
+        .alert("Scan error", isPresented: errorAlertIsPresented) {
+            Button("OK") {
+                cameraManager.errorMessage = nil
+            }
+        } message: {
+            Text(cameraManager.errorMessage ?? "")
+        }
+    }
+
+    private var errorAlertIsPresented: Binding<Bool> {
+        Binding(
+            get: { cameraManager.errorMessage != nil },
+            set: { isPresented in
+                if !isPresented {
+                    cameraManager.errorMessage = nil
+                }
+            }
+        )
     }
 
     // MARK: - Camera Preview
 
     private var cameraPreview: some View {
         ZStack {
-            // Full-screen live camera
             CameraPreviewLayer(session: cameraManager.session)
                 .ignoresSafeArea()
 
-            // Edge detection overlay
             EdgeDetectionOverlay(rectangle: cameraManager.detectedRectangle)
                 .ignoresSafeArea()
 
-            // Top bar
             VStack {
                 topBar
                 Spacer()
@@ -236,7 +325,6 @@ struct ScanPOC_LiveCamera: View {
 
     private var topBar: some View {
         HStack {
-            // Status indicator
             HStack(spacing: 6) {
                 Circle()
                     .fill(cameraManager.detectedRectangle != nil ? Color.white : GrainTheme.textSecondary)
@@ -250,7 +338,6 @@ struct ScanPOC_LiveCamera: View {
 
             Spacer()
 
-            // Flash toggle
             Button {
                 flashOn.toggle()
                 toggleFlash(flashOn)
@@ -267,7 +354,6 @@ struct ScanPOC_LiveCamera: View {
 
     private var bottomControls: some View {
         VStack(spacing: 16) {
-            // Detection confidence bar
             if let rect = cameraManager.detectedRectangle {
                 HStack(spacing: 4) {
                     Text("CONFIDENCE")
@@ -296,7 +382,6 @@ struct ScanPOC_LiveCamera: View {
                 .transition(.opacity)
             }
 
-            // Capture button
             Button {
                 cameraManager.captureCurrentFrame()
             } label: {
@@ -310,6 +395,7 @@ struct ScanPOC_LiveCamera: View {
                         .frame(width: 56, height: 56)
                 }
             }
+            .disabled(cameraManager.capturedImage != nil)
             .padding(.bottom, 24)
         }
     }
@@ -350,11 +436,18 @@ struct ScanPOC_LiveCamera: View {
 
     private func toggleFlash(_ on: Bool) {
         guard let device = AVCaptureDevice.default(for: .video),
-              device.hasTorch else { return }
+              device.hasTorch else {
+            cameraManager.errorMessage = "This device does not support flash."
+            return
+        }
 
-        try? device.lockForConfiguration()
-        device.torchMode = on ? .on : .off
-        device.unlockForConfiguration()
+        do {
+            try device.lockForConfiguration()
+            device.torchMode = on ? .on : .off
+            device.unlockForConfiguration()
+        } catch {
+            cameraManager.errorMessage = "Flash could not be updated: \(error.localizedDescription)"
+        }
     }
 }
 
