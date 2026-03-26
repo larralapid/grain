@@ -30,6 +30,7 @@ struct ReceiptTests {
         #expect(receipt.subtotal == Decimal(string: "42.00")!)
         #expect(receipt.tax == Decimal(string: "3.67")!)
         #expect(receipt.date == date)
+        #expect(receipt.id != UUID())  // UUID was generated
     }
 
     @Test func receiptOptionalFieldsDefaultToNil() async throws {

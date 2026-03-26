@@ -8,6 +8,7 @@ Welcome to the Grain project docs. This directory serves as the source of truth 
 |------|-------------|
 | [Current State](Current-State.md) | Architecture audit, what works, what's broken, priority next steps |
 | [Redesign Spec](Redesign-Spec.md) | Inspiration analysis, design system, and three wireframe directions |
+| [Project Board](https://github.com/users/larralapid/projects/18) | Issue tracking, prioritization, and sprint planning |
 | [ADR Index](adr/README.md) | Architecture Decision Records |
 
 ## Architecture Decision Records
