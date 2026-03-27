@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Grain is a native iOS app (SwiftUI + SwiftData, iOS 17+) that scans receipts via on-device OCR and tracks expenses at granular product/brand level. Currently at **proof-of-concept stage** (~3,500 LOC, 20 Swift files).
+Grain is a native iOS app (SwiftUI + SwiftData, iOS 17+) that scans receipts via on-device OCR and tracks expenses at granular product/brand level. Currently at **proof-of-concept stage** 
 
 ## Architecture
 
@@ -30,7 +30,7 @@ Grain is a native iOS app (SwiftUI + SwiftData, iOS 17+) that scans receipts via
 - `docs/Home.md` — Doc index
 - `docs/Current-State.md` — Architecture audit
 - `docs/Redesign-Spec.md` — Design system and wireframes
-- `docs/adr/` — Architecture Decision Records (ADR-0001 through ADR-0006)
+- `docs/adr/` — Architecture Decision Records 
 - `CHANGELOG.md` — Keep a Changelog format
 
 ## Conventions
