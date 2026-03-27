@@ -9,6 +9,9 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- GitHub Actions CI workflow for automated static analysis (`xcodebuild analyze`), iOS simulator build, unit tests, and UI tests on pushes and pull requests.
+
 ### Planned
 - Wire "+" toolbar button to manual receipt entry form
 - Wire "Edit" button on scan preview
