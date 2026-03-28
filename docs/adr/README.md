@@ -19,7 +19,7 @@ Each ADR uses the lightweight format:
 | [ADR-0003](ADR-0003-zero-external-dependencies.md) | Zero external dependencies — Apple frameworks only | Accepted | 2025 |
 | [ADR-0004](ADR-0004-swift-charts.md) | Use Swift Charts for analytics visualization | Accepted | 2025 |
 | [ADR-0005](ADR-0005-local-only-storage.md) | Local-only storage; defer CloudKit sync | Accepted | 2025 |
-| [ADR-0006](ADR-0006-launch-experience.md) | Add launch experience to mask cold start | Proposed | 2026-03-23 |
+| [ADR-0006](ADR-0006-launch-experience.md) | Add Launch Experience to Mask Cold Start | Proposed | 2026-03-23 |
 
 ## Adding a New ADR
 
