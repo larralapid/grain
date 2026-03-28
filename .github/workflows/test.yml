@@ -10,6 +10,8 @@ jobs:
   test:
     name: Run Unit Tests
     runs-on: macos-15
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
