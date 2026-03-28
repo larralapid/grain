@@ -18,6 +18,9 @@ xcuserdata/
 *.ipa
 *.dSYM.zip
 *.dSYM
+*.xcworkspace/
+*.xcodeproj/docs/
+*.xcodeproj/screenshots/
 
 # Swift Package Manager
 .build/
