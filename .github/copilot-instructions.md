@@ -166,7 +166,7 @@ When modifying the parser:
 
 ## Documentation Conventions
 
-- Documentation lives in `docs/` (not a wiki directory).
+- Documentation lives in `docs/`.
 - `docs/adr/` contains Architecture Decision Records.
 - **Create an ADR for every significant technical decision** — before or alongside implementation.
 - ADR format is defined in `docs/adr/README.md`. Follow it exactly.
@@ -201,7 +201,7 @@ When modifying the parser:
 
 ## Memory Persistence for Agents
 
-When working across sessions, agents should store the following types of facts using the `store_memory` tool:
+When working across sessions, agents with memory-persistence capabilities should persist the following types of facts (e.g. via a `store_memory` tool if available):
 
 | Category | What to Store |
 |----------|--------------|
