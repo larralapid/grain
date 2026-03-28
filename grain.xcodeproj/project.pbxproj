@@ -6,37 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		C1C606AA2F77930100C396CC /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C606982F77930100C396CC /* README.md */; };
-		C1C606AB2F77930100C396CC /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C606A82F77930100C396CC /* README.md */; };
-		C1C606AC2F77930100C396CC /* 05-analytics.png in Resources */ = {isa = PBXBuildFile; fileRef = C1C606A42F77930100C396CC /* 05-analytics.png */; };
-		C1C606AD2F77930100C396CC /* 01-home.png in Resources */ = {isa = PBXBuildFile; fileRef = C1C606A02F77930100C396CC /* 01-home.png */; };
-		C1C606AE2F77930100C396CC /* Home.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C6069C2F77930100C396CC /* Home.md */; };
-		C1C606AF2F77930100C396CC /* 07-index.png in Resources */ = {isa = PBXBuildFile; fileRef = C1C606A62F77930100C396CC /* 07-index.png */; };
-		C1C606B02F77930100C396CC /* AGENTS.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C6069A2F77930100C396CC /* AGENTS.md */; };
-		C1C606B12F77930100C396CC /* 08-retailers.png in Resources */ = {isa = PBXBuildFile; fileRef = C1C606A72F77930100C396CC /* 08-retailers.png */; };
-		C1C606B22F77930100C396CC /* Current-State.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C6069B2F77930100C396CC /* Current-State.md */; };
-		C1C606B32F77930100C396CC /* 06-itemwatch.png in Resources */ = {isa = PBXBuildFile; fileRef = C1C606A52F77930100C396CC /* 06-itemwatch.png */; };
-		C1C606B42F77930100C396CC /* ADR-0002-vision-framework-ocr.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C606932F77930100C396CC /* ADR-0002-vision-framework-ocr.md */; };
-		C1C606B52F77930100C396CC /* 03-scan.png in Resources */ = {isa = PBXBuildFile; fileRef = C1C606A22F77930100C396CC /* 03-scan.png */; };
-		C1C606B62F77930100C396CC /* ADR-0005-local-only-storage.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C606962F77930100C396CC /* ADR-0005-local-only-storage.md */; };
-		C1C606B72F77930100C396CC /* test-cases.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C6069E2F77930100C396CC /* test-cases.md */; };
-		C1C606B82F77930100C396CC /* ADR-0001-swiftui-swiftdata.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C606922F77930100C396CC /* ADR-0001-swiftui-swiftdata.md */; };
-		C1C606B92F77930100C396CC /* 04-proof.png in Resources */ = {isa = PBXBuildFile; fileRef = C1C606A32F77930100C396CC /* 04-proof.png */; };
-		C1C606BA2F77930100C396CC /* 02-detail.png in Resources */ = {isa = PBXBuildFile; fileRef = C1C606A12F77930100C396CC /* 02-detail.png */; };
-		C1C606BB2F77930100C396CC /* ADR-0003-zero-external-dependencies.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C606942F77930100C396CC /* ADR-0003-zero-external-dependencies.md */; };
-		C1C606BC2F77930100C396CC /* Redesign-Spec.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C6069D2F77930100C396CC /* Redesign-Spec.md */; };
-		C1C606BD2F77930100C396CC /* ADR-0004-swift-charts.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C606952F77930100C396CC /* ADR-0004-swift-charts.md */; };
-		C1C606BE2F77930100C396CC /* ADR-0006-launch-experience.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C606972F77930100C396CC /* ADR-0006-launch-experience.md */; };
-		C1C606C62F77933100C396CC /* DEMO_DATA.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C606C22F77933100C396CC /* DEMO_DATA.md */; };
-		C1C606C72F77933100C396CC /* mockup.html in Resources */ = {isa = PBXBuildFile; fileRef = C1C606C42F77933100C396CC /* mockup.html */; };
-		C1C606C82F77933100C396CC /* CHANGELOG.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C606BF2F77933100C396CC /* CHANGELOG.md */; };
-		C1C606C92F77933100C396CC /* CLAUDE.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C606C02F77933100C396CC /* CLAUDE.md */; };
-		C1C606CA2F77933100C396CC /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = C1C606C32F77933100C396CC /* LICENSE */; };
-		C1C606CB2F77933100C396CC /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = C1C606C52F77933100C396CC /* README.md */; };
-		C1C606CC2F77933100C396CC /* compare.html in Resources */ = {isa = PBXBuildFile; fileRef = C1C606C12F77933100C396CC /* compare.html */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		C1EA4BFC2E24D0D20072722C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -55,34 +24,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		C1C606922F77930100C396CC /* ADR-0001-swiftui-swiftdata.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "ADR-0001-swiftui-swiftdata.md"; sourceTree = "<group>"; };
-		C1C606932F77930100C396CC /* ADR-0002-vision-framework-ocr.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "ADR-0002-vision-framework-ocr.md"; sourceTree = "<group>"; };
-		C1C606942F77930100C396CC /* ADR-0003-zero-external-dependencies.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "ADR-0003-zero-external-dependencies.md"; sourceTree = "<group>"; };
-		C1C606952F77930100C396CC /* ADR-0004-swift-charts.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "ADR-0004-swift-charts.md"; sourceTree = "<group>"; };
-		C1C606962F77930100C396CC /* ADR-0005-local-only-storage.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "ADR-0005-local-only-storage.md"; sourceTree = "<group>"; };
-		C1C606972F77930100C396CC /* ADR-0006-launch-experience.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "ADR-0006-launch-experience.md"; sourceTree = "<group>"; };
-		C1C606982F77930100C396CC /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		C1C6069A2F77930100C396CC /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
-		C1C6069B2F77930100C396CC /* Current-State.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Current-State.md"; sourceTree = "<group>"; };
-		C1C6069C2F77930100C396CC /* Home.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Home.md; sourceTree = "<group>"; };
-		C1C6069D2F77930100C396CC /* Redesign-Spec.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Redesign-Spec.md"; sourceTree = "<group>"; };
-		C1C6069E2F77930100C396CC /* test-cases.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "test-cases.md"; sourceTree = "<group>"; };
-		C1C606A02F77930100C396CC /* 01-home.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "01-home.png"; sourceTree = "<group>"; };
-		C1C606A12F77930100C396CC /* 02-detail.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "02-detail.png"; sourceTree = "<group>"; };
-		C1C606A22F77930100C396CC /* 03-scan.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "03-scan.png"; sourceTree = "<group>"; };
-		C1C606A32F77930100C396CC /* 04-proof.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "04-proof.png"; sourceTree = "<group>"; };
-		C1C606A42F77930100C396CC /* 05-analytics.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "05-analytics.png"; sourceTree = "<group>"; };
-		C1C606A52F77930100C396CC /* 06-itemwatch.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "06-itemwatch.png"; sourceTree = "<group>"; };
-		C1C606A62F77930100C396CC /* 07-index.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "07-index.png"; sourceTree = "<group>"; };
-		C1C606A72F77930100C396CC /* 08-retailers.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "08-retailers.png"; sourceTree = "<group>"; };
-		C1C606A82F77930100C396CC /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		C1C606BF2F77933100C396CC /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
-		C1C606C02F77933100C396CC /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CLAUDE.md; sourceTree = "<group>"; };
-		C1C606C12F77933100C396CC /* compare.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = compare.html; sourceTree = "<group>"; };
-		C1C606C22F77933100C396CC /* DEMO_DATA.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DEMO_DATA.md; sourceTree = "<group>"; };
-		C1C606C32F77933100C396CC /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
-		C1C606C42F77933100C396CC /* mockup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = mockup.html; sourceTree = "<group>"; };
-		C1C606C52F77933100C396CC /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		C1EA4BEA2E24D0D00072722C /* grain.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = grain.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1EA4BFB2E24D0D20072722C /* grainTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = grainTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1EA4C052E24D0D20072722C /* grainUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = grainUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -144,61 +85,9 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		C1C606992F77930100C396CC /* adr */ = {
-			isa = PBXGroup;
-			children = (
-				C1C606922F77930100C396CC /* ADR-0001-swiftui-swiftdata.md */,
-				C1C606932F77930100C396CC /* ADR-0002-vision-framework-ocr.md */,
-				C1C606942F77930100C396CC /* ADR-0003-zero-external-dependencies.md */,
-				C1C606952F77930100C396CC /* ADR-0004-swift-charts.md */,
-				C1C606962F77930100C396CC /* ADR-0005-local-only-storage.md */,
-				C1C606972F77930100C396CC /* ADR-0006-launch-experience.md */,
-				C1C606982F77930100C396CC /* README.md */,
-			);
-			path = adr;
-			sourceTree = "<group>";
-		};
-		C1C6069F2F77930100C396CC /* docs */ = {
-			isa = PBXGroup;
-			children = (
-				C1C606992F77930100C396CC /* adr */,
-				C1C6069A2F77930100C396CC /* AGENTS.md */,
-				C1C6069B2F77930100C396CC /* Current-State.md */,
-				C1C6069C2F77930100C396CC /* Home.md */,
-				C1C6069D2F77930100C396CC /* Redesign-Spec.md */,
-				C1C6069E2F77930100C396CC /* test-cases.md */,
-			);
-			path = docs;
-			sourceTree = "<group>";
-		};
-		C1C606A92F77930100C396CC /* screenshots */ = {
-			isa = PBXGroup;
-			children = (
-				C1C606A02F77930100C396CC /* 01-home.png */,
-				C1C606A12F77930100C396CC /* 02-detail.png */,
-				C1C606A22F77930100C396CC /* 03-scan.png */,
-				C1C606A32F77930100C396CC /* 04-proof.png */,
-				C1C606A42F77930100C396CC /* 05-analytics.png */,
-				C1C606A52F77930100C396CC /* 06-itemwatch.png */,
-				C1C606A62F77930100C396CC /* 07-index.png */,
-				C1C606A72F77930100C396CC /* 08-retailers.png */,
-				C1C606A82F77930100C396CC /* README.md */,
-			);
-			path = screenshots;
-			sourceTree = "<group>";
-		};
 		C1EA4BE12E24D0CF0072722C = {
 			isa = PBXGroup;
 			children = (
-				C1C606BF2F77933100C396CC /* CHANGELOG.md */,
-				C1C606C02F77933100C396CC /* CLAUDE.md */,
-				C1C606C12F77933100C396CC /* compare.html */,
-				C1C606C22F77933100C396CC /* DEMO_DATA.md */,
-				C1C606C32F77933100C396CC /* LICENSE */,
-				C1C606C42F77933100C396CC /* mockup.html */,
-				C1C606C52F77933100C396CC /* README.md */,
-				C1C6069F2F77930100C396CC /* docs */,
-				C1C606A92F77930100C396CC /* screenshots */,
 				C1EA4BEC2E24D0D00072722C /* grain */,
 				C1EA4BFE2E24D0D20072722C /* grainTests */,
 				C1EA4C082E24D0D20072722C /* grainUITests */,
@@ -336,34 +225,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C1C606AA2F77930100C396CC /* README.md in Resources */,
-				C1C606AB2F77930100C396CC /* README.md in Resources */,
-				C1C606AC2F77930100C396CC /* 05-analytics.png in Resources */,
-				C1C606AD2F77930100C396CC /* 01-home.png in Resources */,
-				C1C606AE2F77930100C396CC /* Home.md in Resources */,
-				C1C606AF2F77930100C396CC /* 07-index.png in Resources */,
-				C1C606B02F77930100C396CC /* AGENTS.md in Resources */,
-				C1C606B12F77930100C396CC /* 08-retailers.png in Resources */,
-				C1C606B22F77930100C396CC /* Current-State.md in Resources */,
-				C1C606B32F77930100C396CC /* 06-itemwatch.png in Resources */,
-				C1C606B42F77930100C396CC /* ADR-0002-vision-framework-ocr.md in Resources */,
-				C1C606B52F77930100C396CC /* 03-scan.png in Resources */,
-				C1C606B62F77930100C396CC /* ADR-0005-local-only-storage.md in Resources */,
-				C1C606B72F77930100C396CC /* test-cases.md in Resources */,
-				C1C606B82F77930100C396CC /* ADR-0001-swiftui-swiftdata.md in Resources */,
-				C1C606B92F77930100C396CC /* 04-proof.png in Resources */,
-				C1C606BA2F77930100C396CC /* 02-detail.png in Resources */,
-				C1C606BB2F77930100C396CC /* ADR-0003-zero-external-dependencies.md in Resources */,
-				C1C606BC2F77930100C396CC /* Redesign-Spec.md in Resources */,
-				C1C606BD2F77930100C396CC /* ADR-0004-swift-charts.md in Resources */,
-				C1C606BE2F77930100C396CC /* ADR-0006-launch-experience.md in Resources */,
-				C1C606C62F77933100C396CC /* DEMO_DATA.md in Resources */,
-				C1C606C72F77933100C396CC /* mockup.html in Resources */,
-				C1C606C82F77933100C396CC /* CHANGELOG.md in Resources */,
-				C1C606C92F77933100C396CC /* CLAUDE.md in Resources */,
-				C1C606CA2F77933100C396CC /* LICENSE in Resources */,
-				C1C606CB2F77933100C396CC /* README.md in Resources */,
-				C1C606CC2F77933100C396CC /* compare.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
