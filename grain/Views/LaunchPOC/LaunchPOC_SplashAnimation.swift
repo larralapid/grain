@@ -1,32 +1,39 @@
 import SwiftUI
 import SwiftData
 
-// MARK: - POC 1: Async ModelContainer Init with Splash Animation
-// Ref: Issue #20 — Reduce app cold start time / add launch experience
-//
-// Strategy: Move ModelContainer creation to async Task, show branded
-// splash screen with receipt-themed animation while loading.
+struct LaunchExperienceView: View {
+    private let modelContainerBuilder: () throws -> ModelContainer
 
-struct SplashAnimationView: View {
-    @ObservedObject private var appearance = AppearanceManager.shared
-    @State private var isLoaded = false
+    @State private var launchPhase: LaunchPhase = .loading
     @State private var lineOffset: CGFloat = -200
     @State private var opacity: Double = 0
     @State private var receiptLines: [ReceiptLine] = []
+    @State private var didStartLoading = false
+
+    init(modelContainerBuilder: @escaping () throws -> ModelContainer) {
+        self.modelContainerBuilder = modelContainerBuilder
+    }
 
     var body: some View {
         ZStack {
             GrainTheme.bg.ignoresSafeArea()
 
-            if isLoaded {
-                // Transition to main app
-                MainTabView()
-                    .transition(.opacity)
-            } else {
+            switch launchPhase {
+            case .loading:
                 splashContent
+            case .loaded(let modelContainer):
+                MainTabView()
+                    .modelContainer(modelContainer)
+                    .transition(.opacity)
+            case .failed(let message):
+                failureContent(message: message)
+                    .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.4), value: isLoaded)
+        .animation(.easeInOut(duration: 0.35), value: launchPhase)
+        .task {
+            await loadModelContainerIfNeeded()
+        }
     }
 
     private var splashContent: some View {
@@ -120,7 +127,49 @@ struct SplashAnimationView: View {
         }
     }
 
+    private func failureContent(message: String) -> some View {
+        VStack(spacing: 20) {
+            Spacer()
+
+            Text("GRAIN")
+                .font(GrainTheme.mono(28, weight: .bold))
+                .tracking(8)
+                .foregroundColor(GrainTheme.textPrimary)
+
+            VStack(spacing: 8) {
+                Text("LAUNCH FAILED")
+                    .font(GrainTheme.mono(11, weight: .semibold))
+                    .tracking(2)
+                    .foregroundColor(GrainTheme.textPrimary)
+
+                Text(message)
+                    .font(GrainTheme.mono(11))
+                    .foregroundColor(GrainTheme.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+            }
+
+            Button("Retry") {
+                launchPhase = .loading
+                didStartLoading = false
+            }
+            .font(GrainTheme.mono(11, weight: .semibold))
+            .foregroundColor(GrainTheme.textPrimary)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .background(GrainTheme.surface)
+            .overlay(
+                Rectangle()
+                    .stroke(GrainTheme.border, lineWidth: 0.5)
+            )
+
+            Spacer()
+        }
+    }
+
     private func startAnimations() {
+        guard receiptLines.isEmpty else { return }
+
         // Fade in title
         withAnimation(.easeIn(duration: 0.3)) {
             opacity = 1
@@ -143,11 +192,25 @@ struct SplashAnimationView: View {
         withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
             lineOffset = 10
         }
+    }
 
-        // Simulate load complete
-        // In production: replace with actual ModelContainer init callback
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            isLoaded = true
+    private func loadModelContainerIfNeeded() async {
+        guard !didStartLoading else { return }
+        didStartLoading = true
+        let builder = modelContainerBuilder
+
+        do {
+            let modelContainer = try await Task.detached(priority: .userInitiated) {
+                try builder()
+            }.value
+
+            await MainActor.run {
+                launchPhase = .loaded(modelContainer)
+            }
+        } catch {
+            await MainActor.run {
+                launchPhase = .failed("Unable to initialize local storage.")
+            }
         }
     }
 }
@@ -159,19 +222,38 @@ private struct ReceiptLine: Identifiable {
     let opacity: Double
 }
 
-// MARK: - App Entry Point (POC 1)
-// Replace grainApp.swift body with:
-//
-// struct grainApp: App {
-//     var body: some Scene {
-//         WindowGroup {
-//             SplashAnimationView()
-//         }
-//     }
-// }
-// Then init ModelContainer async in SplashAnimationView.onAppear
+private enum LaunchPhase: Equatable {
+    case loading
+    case loaded(ModelContainer)
+    case failed(String)
+
+    static func == (lhs: LaunchPhase, rhs: LaunchPhase) -> Bool {
+        switch (lhs, rhs) {
+        case (.loading, .loading):
+            return true
+        case (.failed(let lhsMessage), .failed(let rhsMessage)):
+            return lhsMessage == rhsMessage
+        case (.loaded, .loaded):
+            return false
+        default:
+            return false
+        }
+    }
+}
 
 #Preview {
-    SplashAnimationView()
+    LaunchExperienceView {
+        let schema = Schema([
+            Receipt.self,
+            ReceiptItem.self,
+            Product.self,
+            PricePoint.self,
+            Brand.self,
+            BankTransaction.self,
+            SpendingAnalytics.self
+        ])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        return try ModelContainer(for: schema, configurations: [configuration])
+    }
         .modelContainer(for: [Receipt.self, ReceiptItem.self, Product.self, Brand.self, BankTransaction.self, SpendingAnalytics.self], inMemory: true)
 }
