@@ -1,5 +1,7 @@
 # Grain - Receipt Scanner & Expense Tracker
 
+[![Build](https://github.com/larralapid/grain/actions/workflows/build.yml/badge.svg)](https://github.com/larralapid/grain/actions/workflows/build.yml)
+
 Grain is a comprehensive iOS app that scans receipts and tracks expenses down to the most granular level. Track your products, brands, and spending patterns with powerful analytics and insights.
 
 **[Changelog](CHANGELOG.md)** · **[Docs](docs/Home.md)** · **[Architecture Decisions](docs/adr/README.md)** · **[Current State](docs/Current-State.md)** · **[Redesign Spec](docs/Redesign-Spec.md)**
