@@ -5,6 +5,7 @@ struct LaunchExperienceView: View {
     private let modelContainerBuilder: () throws -> ModelContainer
 
     @State private var launchPhase: LaunchPhase = .loading
+    @State private var modelContainer: ModelContainer?
     @State private var lineOffset: CGFloat = -200
     @State private var opacity: Double = 0
     @State private var receiptLines: [ReceiptLine] = []
@@ -21,10 +22,14 @@ struct LaunchExperienceView: View {
             switch launchPhase {
             case .loading:
                 splashContent
-            case .loaded(let modelContainer):
-                MainTabView()
-                    .modelContainer(modelContainer)
-                    .transition(.opacity)
+            case .loaded:
+                if let modelContainer {
+                    MainTabView()
+                        .modelContainer(modelContainer)
+                        .transition(.opacity)
+                } else {
+                    splashContent
+                }
             case .failed(let message):
                 failureContent(message: message)
                     .transition(.opacity)
@@ -152,6 +157,9 @@ struct LaunchExperienceView: View {
             Button("Retry") {
                 launchPhase = .loading
                 didStartLoading = false
+                Task {
+                    await loadModelContainerIfNeeded()
+                }
             }
             .font(GrainTheme.mono(11, weight: .semibold))
             .foregroundColor(GrainTheme.textPrimary)
@@ -200,16 +208,23 @@ struct LaunchExperienceView: View {
         let builder = modelContainerBuilder
 
         do {
-            let modelContainer = try await Task.detached(priority: .userInitiated) {
+            let container = try await Task.detached(priority: .userInitiated) {
                 try builder()
             }.value
 
             await MainActor.run {
-                launchPhase = .loaded(modelContainer)
+                modelContainer = container
+                launchPhase = .loaded
             }
         } catch {
+#if DEBUG
+            let message = "Unable to initialize local storage. (\(error.localizedDescription))"
+            print("LaunchExperienceView.loadModelContainerIfNeeded error:", error)
+#else
+            let message = "Unable to initialize local storage."
+#endif
             await MainActor.run {
-                launchPhase = .failed("Unable to initialize local storage.")
+                launchPhase = .failed(message)
             }
         }
     }
@@ -224,21 +239,8 @@ private struct ReceiptLine: Identifiable {
 
 private enum LaunchPhase: Equatable {
     case loading
-    case loaded(ModelContainer)
+    case loaded
     case failed(String)
-
-    static func == (lhs: LaunchPhase, rhs: LaunchPhase) -> Bool {
-        switch (lhs, rhs) {
-        case (.loading, .loading):
-            return true
-        case (.failed(let lhsMessage), .failed(let rhsMessage)):
-            return lhsMessage == rhsMessage
-        case (.loaded, .loaded):
-            return false
-        default:
-            return false
-        }
-    }
 }
 
 #Preview {
@@ -255,5 +257,4 @@ private enum LaunchPhase: Equatable {
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         return try ModelContainer(for: schema, configurations: [configuration])
     }
-        .modelContainer(for: [Receipt.self, ReceiptItem.self, Product.self, Brand.self, BankTransaction.self, SpendingAnalytics.self], inMemory: true)
 }
