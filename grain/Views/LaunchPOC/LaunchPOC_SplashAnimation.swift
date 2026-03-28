@@ -160,6 +160,9 @@ struct LaunchExperienceView: View {
                 Task {
                     await loadModelContainerIfNeeded()
                 }
+                Task {
+                    await loadModelContainerIfNeeded()
+                }
             }
             .font(GrainTheme.mono(11, weight: .semibold))
             .foregroundColor(GrainTheme.textPrimary)
