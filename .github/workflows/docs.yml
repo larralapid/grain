@@ -1,0 +1,63 @@
+name: Docs
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  # ── Auto-update ADR index ──────────────────────────────────────────────────
+  # Runs on push to main and on PRs from this repo (not forks).
+  # If the ADR index is out of sync it commits the update back to the branch.
+  update-adr-index:
+    name: Auto-update ADR index
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install adr-log
+        run: npm install -g adr-log
+
+      - name: Update ADR index
+        run: bash .github/scripts/update-adr-index.sh
+
+      - name: Commit updated index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain docs/adr/README.md)" ]; then
+            git add docs/adr/README.md
+            git commit -m "docs: auto-update ADR index [skip ci]"
+            git push
+          else
+            echo "ADR index is already up to date — nothing to commit."
+          fi
+
+  # ── Validate docs ──────────────────────────────────────────────────────────
+  # `needs` ensures validate runs after any ADR-index commit so the checkout
+  # below sees the up-to-date index. `if: always()` lets it run even when the
+  # update job was skipped (e.g. fork PRs that can't push back).
+  validate-docs:
+    name: Validate docs
+    runs-on: ubuntu-latest
+    needs: [update-adr-index]
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Validate documentation
+        run: bash .github/scripts/validate-docs.sh
