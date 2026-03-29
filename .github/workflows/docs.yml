@@ -25,6 +25,9 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install adr-log
+        run: npm install -g adr-log
+
       - name: Update ADR index
         run: bash .github/scripts/update-adr-index.sh
 

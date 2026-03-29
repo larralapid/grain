@@ -12,14 +12,16 @@ Each ADR uses the lightweight format:
 
 ## Index
 
-| ADR | Title | Status | Date |
-|-----|-------|--------|------|
-| [ADR-0001](ADR-0001-swiftui-swiftdata.md) | Use SwiftUI + SwiftData as the app framework | Accepted | 2025 |
-| [ADR-0002](ADR-0002-vision-framework-ocr.md) | Use Apple Vision framework for on-device OCR | Accepted | 2025 |
-| [ADR-0003](ADR-0003-zero-external-dependencies.md) | Zero external dependencies — Apple frameworks only | Accepted | 2025 |
-| [ADR-0004](ADR-0004-swift-charts.md) | Use Swift Charts for analytics visualization | Accepted | 2025 |
-| [ADR-0005](ADR-0005-local-only-storage.md) | Local-only storage; defer CloudKit sync | Accepted | 2025 |
-| [ADR-0006](ADR-0006-launch-experience.md) | Add Launch Experience to Mask Cold Start | Proposed | 2026-03-23 |
+<!-- adrlog -->
+
+* [ADR-1](ADR-0001-swiftui-swiftdata.md) - ADR-0001: Use SwiftUI + SwiftData as the app framework
+* [ADR-2](ADR-0002-vision-framework-ocr.md) - ADR-0002: Use Apple Vision framework for on-device OCR
+* [ADR-3](ADR-0003-zero-external-dependencies.md) - ADR-0003: Zero external dependencies — Apple frameworks only
+* [ADR-4](ADR-0004-swift-charts.md) - ADR-0004: Use Swift Charts for analytics visualization
+* [ADR-5](ADR-0005-local-only-storage.md) - ADR-0005: Local-only storage; defer CloudKit sync
+* [ADR-6](ADR-0006-launch-experience.md) - ADR-0006: Add Launch Experience to Mask Cold Start
+
+<!-- adrlogstop -->
 
 ## Adding a New ADR
 
