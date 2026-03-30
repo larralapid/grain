@@ -1,24 +1,32 @@
 #!/usr/bin/env bash
 # Validates project documentation:
-#   1. Every docs/adr/ADR-*.md file is listed in the ADR index.
+#   1. Every ADR file (listed by `adr list` from npryce/adr-tools) is referenced
+#      in the ADR index (docs/adr/README.md).
 #   2. CHANGELOG.md has an [Unreleased] section.
 #   3. Internal markdown links resolve to existing files.
+#
+# Requires adr-tools (npryce/adr-tools) to be on PATH.
 set -euo pipefail
+
+if ! command -v adr &>/dev/null; then
+  echo "adr (adr-tools) not found."
+  echo "Install from https://github.com/npryce/adr-tools/releases and add src/ to PATH."
+  exit 1
+fi
 
 errors=0
 
 # ── 1. ADR index completeness ────────────────────────────────────────────────
 echo "=== Checking ADR index completeness ==="
-ADR_DIR="docs/adr"
-INDEX_FILE="$ADR_DIR/README.md"
+INDEX_FILE="docs/adr/README.md"
 
-for adr_file in "$ADR_DIR"/ADR-*.md; do
-    filename=$(basename "$adr_file")
+while IFS= read -r adr_path; do
+    filename=$(basename "$adr_path")
     if ! grep -qF "$filename" "$INDEX_FILE"; then
         echo "ERROR: $filename is not listed in $INDEX_FILE"
         errors=$((errors + 1))
     fi
-done
+done < <(adr list)
 echo "Done."
 
 # ── 2. CHANGELOG [Unreleased] section ────────────────────────────────────────

@@ -25,6 +25,12 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install adr-tools
+        run: |
+          curl -sL https://github.com/npryce/adr-tools/archive/refs/tags/3.0.0.tar.gz \
+            | tar -xz -C /tmp
+          echo "/tmp/adr-tools-3.0.0/src" >> "$GITHUB_PATH"
+
       - name: Install adr-log
         run: npm install -g adr-log
 
@@ -58,6 +64,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Install adr-tools
+        run: |
+          curl -sL https://github.com/npryce/adr-tools/archive/refs/tags/3.0.0.tar.gz \
+            | tar -xz -C /tmp
+          echo "/tmp/adr-tools-3.0.0/src" >> "$GITHUB_PATH"
 
       - name: Validate documentation
         run: bash .github/scripts/validate-docs.sh
