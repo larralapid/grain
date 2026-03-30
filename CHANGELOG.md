@@ -52,7 +52,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - `SpendingAnalytics` is a SwiftData `@Model` but used transiently — should be a plain struct
 - No cascading deletes declared on `Receipt` → `ReceiptItem` relationship
 - No user-facing error states; all failures are swallowed with `print()`
-- Zero automated test coverage
+- Zero automated test coverage in CI (CI now runs `grainTests` and `grainUITests` on every PR)
 - `ContentView.swift` and `Item.swift` are unused Xcode template leftovers
 
 ---
