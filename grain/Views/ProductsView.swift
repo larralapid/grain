@@ -137,6 +137,20 @@ struct ProductsView: View {
         }
     }
 
+struct ProductDetailView: View {
+    let product: Product
+    
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                productHeader
+                
+                if !product.priceHistory.isEmpty {
+                    priceHistorySection
+                }
+                
+                if let description = product.productDescription {
+                    descriptionSection(description)
     // MARK: - Brands (cards)
 
     private var brandsSubview: some View {

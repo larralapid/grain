@@ -9,6 +9,10 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- GitHub Actions Build workflow (`build.yml`) that runs iOS simulator build and tests on pushes and pull requests to `main`
+- Build status badge in README
+
 ### Planned
 - Wire "+" toolbar button to manual receipt entry form
 - Wire "Edit" button on scan preview
@@ -48,7 +52,6 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - `SpendingAnalytics` is a SwiftData `@Model` but used transiently — should be a plain struct
 - No cascading deletes declared on `Receipt` → `ReceiptItem` relationship
 - No user-facing error states; all failures are swallowed with `print()`
-- Zero automated test coverage
 - `ContentView.swift` and `Item.swift` are unused Xcode template leftovers
 
 ---
