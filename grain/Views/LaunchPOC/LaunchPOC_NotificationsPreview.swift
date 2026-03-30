@@ -288,10 +288,14 @@ private enum NotificationsLaunchPhase: Equatable {
 
     static func == (lhs: NotificationsLaunchPhase, rhs: NotificationsLaunchPhase) -> Bool {
         switch (lhs, rhs) {
-        case (.loading, .loading): return true
-        case (.failed(let a), .failed(let b)): return a == b
-        case (.loaded, .loaded): return false
-        default: return false
+        case (.loading, .loading):
+            return true
+        case (.failed(let a), .failed(let b)):
+            return a == b
+        case (.loaded(let a), .loaded(let b)):
+            return a === b
+        default:
+            return false
         }
     }
 }

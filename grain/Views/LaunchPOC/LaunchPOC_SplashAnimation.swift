@@ -242,7 +242,7 @@ private struct ReceiptLine: Identifiable {
 
 private enum LaunchPhase: Equatable {
     case loading
-    case loaded(ModelContainer)
+    case loaded
     case failed(String)
 
     static func == (lhs: LaunchPhase, rhs: LaunchPhase) -> Bool {
@@ -251,8 +251,8 @@ private enum LaunchPhase: Equatable {
             return true
         case (.failed(let lhsMessage), .failed(let rhsMessage)):
             return lhsMessage == rhsMessage
-        case (.loaded, .loaded):
-            return false
+        case (.loaded(let lhsContainer), .loaded(let rhsContainer)):
+            return ObjectIdentifier(lhsContainer) == ObjectIdentifier(rhsContainer)
         default:
             return false
         }
@@ -273,5 +273,4 @@ private enum LaunchPhase: Equatable {
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         return try ModelContainer(for: schema, configurations: [configuration])
     }
-        .modelContainer(for: [Receipt.self, ReceiptItem.self, Product.self, Brand.self, BankTransaction.self, SpendingAnalytics.self], inMemory: true)
 }
