@@ -52,22 +52,24 @@ grain/
 ├── grainApp.swift            # @main entry, ModelContainer setup
 ├── GrainTheme.swift          # Design tokens, AppearanceManager
 ├── Models/
-│   ├── Receipt.swift         # @Model: merchant, date, totals, items
-│   ├── ReceiptItem.swift     # @Model: line item name, price, quantity
-│   ├── Product.swift         # @Model: product catalog with price history
-│   ├── BankTransaction.swift # @Model: bank statement rows (no UI yet)
-│   └── ...
+│   ├── Receipt.swift         # @Model: Receipt + ReceiptItem (both defined here)
+│   ├── Product.swift         # @Model: Product, PricePoint, Brand (all defined here)
+│   └── BankTransaction.swift # @Model: BankTransaction + SpendingAnalytics (both defined here)
 ├── Views/
 │   ├── MainTabView.swift     # 5-tab root navigation
 │   ├── ReceiptScannerView.swift  # Camera → OCR → thermal proof sheet
 │   ├── ReceiptListView.swift
 │   ├── ReceiptDetailView.swift
 │   ├── AnalyticsView.swift
+│   ├── ItemAnalyticsView.swift  # Per-item purchase history detail
 │   ├── ProductsView.swift
-│   └── SettingsView.swift   # All settings are stubs ("coming soon")
+│   ├── SettingsView.swift   # All settings are stubs ("coming soon")
+│   ├── LaunchPOC/           # Launch screen POC experiments (not production)
+│   └── ScanPOC/             # Scan screen POC experiments (not production)
 └── Services/
     ├── ReceiptScannerService.swift  # Vision OCR + regex parser
-    └── AnalyticsService.swift       # Aggregation queries
+    ├── AnalyticsService.swift       # Aggregation queries
+    └── DemoDataSeeder.swift         # Seeds demo receipts for development/preview
 ```
 
 ### SwiftData Models
@@ -98,6 +100,9 @@ All persistent models use SwiftData `@Model`. Follow these rules:
 | `GrainTheme.textSecondary` | Secondary/muted text |
 | `GrainTheme.accent` | Interactive elements, highlights |
 | `GrainTheme.dateHeader` | Date section headers |
+| `GrainTheme.priceUp` | Price increase indicator (red) |
+| `GrainTheme.priceDown` | Price decrease indicator (green) |
+| `GrainTheme.priceFlat` | No price change indicator (grey) |
 
 ### Typography
 
@@ -130,7 +135,7 @@ UIImage (camera capture)
 - **Total**: Line containing "TOTAL" → extract trailing dollar amount via regex.
 - **Subtotal**: Line containing "SUBTOTAL" → same extraction.
 - **Tax**: Line containing "TAX" → same extraction.
-- **Date**: Lines matching common date formats (MM/DD/YYYY, YYYY-MM-DD, "Jan 01 2024", etc.).
+- **Date**: Lines matching common date formats (MM/DD/YYYY, YYYY-MM-DD, DD/MM/YYYY, "Jan 01, 2024", etc.).
 - **Line items**: Lines matching pattern `<description> <price>` where price is a decimal with optional leading `$`.
 
 ### Known Parser Limitations
