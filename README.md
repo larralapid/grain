@@ -1,100 +1,70 @@
-# Grain - Receipt Scanner & Expense Tracker
+# grain
 
 [![Build](https://github.com/larralapid/grain/actions/workflows/build.yml/badge.svg)](https://github.com/larralapid/grain/actions/workflows/build.yml)
 
 Grain is a comprehensive iOS app that scans receipts and tracks expenses down to the most granular level. Track your products, brands, and spending patterns with powerful analytics and insights.
 
-**[Changelog](CHANGELOG.md)** · **[Docs](docs/Home.md)** · **[Architecture Decisions](docs/adr/README.md)** · **[Current State](docs/Current-State.md)** · **[Redesign Spec](docs/Redesign-Spec.md)**
+Receipt scanner and expense tracker for iOS. Scans paper receipts with on-device OCR, tracks spending at the product and brand level, and shows you where your money actually goes.
 
-## Features
+<p align="center">
+  <img src="screenshots/01-home.png" width="180" />
+  <img src="screenshots/02-detail.png" width="180" />
+  <img src="screenshots/03-scan.png" width="180" />
+  <img src="screenshots/05-analytics.png" width="180" />
+</p>
 
-### 📱 Receipt Scanning
-- Camera-based receipt scanning with OCR
-- Automatic extraction of merchant, date, items, and prices
-- Support for various receipt formats and layouts
-- Manual editing and correction of scanned data
+## What it does
 
-### 📊 Expense Analytics
-- Detailed spending breakdowns by category, brand, and merchant
-- Weekly, monthly, quarterly, and yearly reports
-- Spending trends and patterns analysis
-- Tax-deductible expense tracking
+- **Scan receipts** — photograph a paper receipt and extract merchant, items, prices, tax via Vision framework OCR. All processing on-device.
+- **Track spending** — monthly totals, category breakdowns (groceries, home, health, dining, transport), and store-level spend.
+- **Watch item prices** — see price history and trends for individual products across purchases.
+- **Index everything** — browse all products, brands, and retailers extracted from your receipts.
 
-### 🏷️ Product & Brand Tracking
-- Automatic product categorization and brand recognition
-- Price history tracking for individual products
-- Brand spending analysis
-- Product-level expense insights
+## Stack
 
-### 💰 Financial Insights
-- Total spending summaries
-- Average transaction amounts
-- Category-wise expense distribution
-- Tax preparation assistance
+| Layer | Tech |
+|-------|------|
+| UI | SwiftUI, monospace brutalist design system (`GrainTheme`) |
+| Data | SwiftData (7 model types) |
+| OCR | Apple Vision framework |
+| Charts | Swift Charts |
+| Storage | Local-only, on-device |
+| Dependencies | Zero — Apple frameworks only |
 
-### 🔗 Bank Integration (Coming Soon)
-- Link receipts to bank transactions
-- Automatic transaction matching
-- Enhanced accuracy through dual verification
+iOS 17.0+ &middot; Swift 5.9+ &middot; Xcode 15+
 
-## Technical Stack
+## Run
 
-- **Framework**: SwiftUI + SwiftData
-- **Platform**: iOS 17.0+
-- **Language**: Swift 5.9+
-- **OCR**: Vision Framework
-- **Database**: SwiftData with Core Data backend
-- **Charts**: Swift Charts framework
+```
+open grain.xcodeproj
+```
 
-## Installation
+Build target `grain`, run on simulator or device.
 
-1. Clone the repository
-2. Open `grain.xcodeproj` in Xcode 15+
-3. Build and run on iOS device or simulator
+## Screens
 
-## Usage
+| # | Screen | Description |
+|---|--------|-------------|
+| 01 | [Home](screenshots/01-home.png) | Receipt list with monthly spending summary |
+| 02 | [Detail](screenshots/02-detail.png) | Receipt breakdown: items, brands, totals |
+| 03 | [Scan](screenshots/03-scan.png) | Camera viewfinder with alignment guide |
+| 04 | [Proof](screenshots/04-proof.png) | Thermal receipt preview after OCR |
+| 05 | [Spending](screenshots/05-analytics.png) | Category and store spending charts |
+| 06 | [Item Watch](screenshots/06-itemwatch.png) | Price tracking across purchases |
+| 07 | [Index](screenshots/07-index.png) | Product catalog with average prices |
+| 08 | [Retailers](screenshots/08-retailers.png) | Retailer directory by total spend |
 
-1. **Scan Receipt**: Use the camera tab to photograph your receipt
-2. **Review & Edit**: Check the extracted data and make corrections if needed
-3. **Save**: Store the receipt with all item details
-4. **Analytics**: View spending insights in the Analytics tab
-5. **Track Products**: Monitor your favorite brands and products
+## Docs
 
-## Documentation
+- [Current State](docs/Current-State.md) — architecture audit
+- [Redesign Spec](docs/Redesign-Spec.md) — design system and wireframes
+- [Architecture Decisions](docs/adr/README.md) — ADR index
+- [Changelog](CHANGELOG.md)
 
-- [Current State Assessment](docs/Current-State.md) — audit of what's built, what's broken, and what's next
-- [Redesign Spec](docs/Redesign-Spec.md) — inspiration analysis, design system, and three wireframe directions
+## Status
 
-## Future Enhancements
-
-- AI-powered expense categorization
-- MCP (Model Context Protocol) integration
-- Class action lawsuit notifications
-- Rebate tracking and alerts
-- Export functionality for tax software
-- Bank account integration
-- Receipt image enhancement
-- Multi-language OCR support
-
-## Privacy & Security
-
-- All data is stored locally on your device
-- No cloud sync or external data sharing
-- Receipt images are processed on-device
-- Bank integration uses secure, encrypted connections
-
-## Contributing
-
-Contributions are currently accepted.
+Proof-of-concept. Core scanning and display flow works. See [Current State](docs/Current-State.md) for known tech debt and next steps.
 
 ## License
 
-All rights reserved. This software is proprietary and confidential.
-
-## Contact
-
-For questions or support, please create an issue in this repository.
-
----
-
-*Grain helps you take control of your finances, one receipt at a time.*
+All rights reserved. See [LICENSE](LICENSE).

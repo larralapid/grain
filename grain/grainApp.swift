@@ -12,7 +12,14 @@ import SwiftData
 struct grainApp: App {
     @ObservedObject private var appearance = AppearanceManager.shared
 
-    var sharedModelContainer: ModelContainer = {
+    var body: some Scene {
+        WindowGroup {
+            LaunchExperienceView(modelContainerBuilder: Self.makeSharedModelContainer)
+                .preferredColorScheme(appearance.isDarkMode ? .dark : .light)
+        }
+    }
+
+    private static func makeSharedModelContainer() throws -> ModelContainer {
         let schema = Schema([
             Receipt.self,
             ReceiptItem.self,
@@ -24,18 +31,6 @@ struct grainApp: App {
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
-    var body: some Scene {
-        WindowGroup {
-            MainTabView()
-                .preferredColorScheme(appearance.isDarkMode ? .dark : .light)
-        }
-        .modelContainer(sharedModelContainer)
+        return try ModelContainer(for: schema, configurations: [modelConfiguration])
     }
 }
