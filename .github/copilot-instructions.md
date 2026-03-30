@@ -75,7 +75,7 @@ grain/
 ### SwiftData Models
 
 All persistent models use SwiftData `@Model`. Follow these rules:
-- Relationships **must** declare cascade delete rules where appropriate.
+- New or updated relationships **should** declare cascade delete rules (via `@Relationship(deleteRule:)`) where appropriate. Existing models may not yet use explicit delete rules; treat this as a forward-looking guideline.
 - Do not add new `@Model` classes for data that is purely derived/calculated — use plain structs instead.
 - `SpendingAnalytics` is a known exception (it is a `@Model` but should be a struct); do not extend it with new persisted properties.
 
