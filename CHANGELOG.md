@@ -11,6 +11,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 - GitHub Actions CI workflow for automated static analysis (`xcodebuild analyze`), iOS simulator build, unit tests, and UI tests on pushes and pull requests.
+- GitHub Actions CI workflow (`build.yml`) that builds and tests on every push and pull request to `main`
+- Build status badge in README
 
 ### Planned
 - Wire "+" toolbar button to manual receipt entry form
@@ -51,7 +53,6 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - `SpendingAnalytics` is a SwiftData `@Model` but used transiently — should be a plain struct
 - No cascading deletes declared on `Receipt` → `ReceiptItem` relationship
 - No user-facing error states; all failures are swallowed with `print()`
-- Zero automated test coverage
 - `ContentView.swift` and `Item.swift` are unused Xcode template leftovers
 
 ---
