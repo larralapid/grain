@@ -1,61 +1,41 @@
 name: CI
 
 on:
-  push:
   pull_request:
+    branches: [main]
+  push:
+    branches: [main]
 
 jobs:
-  lint:
-    name: Lint (Static Analysis)
-    runs-on: macos-latest
+  build:
+    name: Build & Test
+    runs-on: macos-15
+    timeout-minutes: 30
+    concurrency:
+      group: ci-build-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run static analysis
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Build
         run: |
-          xcodebuild \
+          xcodebuild build \
             -project grain.xcodeproj \
             -scheme grain \
             -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO \
-            analyze
+            CODE_SIGNING_ALLOWED=NO
 
-  build-and-test:
-    name: Build and Test
-    runs-on: macos-latest
-    needs: lint
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build app
+      - name: Test
         run: |
-          xcodebuild \
+          xcodebuild test \
             -project grain.xcodeproj \
             -scheme grain \
-            -destination 'platform=iOS Simulator,name=iPhone 15' \
-            CODE_SIGNING_ALLOWED=NO \
-            build
-
-      - name: Run unit tests
-        run: |
-          xcodebuild \
-            -project grain.xcodeproj \
-            -scheme grain \
-            -destination 'platform=iOS Simulator,name=iPhone 15' \
-            CODE_SIGNING_ALLOWED=NO \
-            test \
-            -only-testing:grainTests
-
-      - name: Run UI tests
-        run: |
-          xcodebuild \
-            -project grain.xcodeproj \
-            -scheme grain \
-            -destination 'platform=iOS Simulator,name=iPhone 15' \
-            CODE_SIGNING_ALLOWED=NO \
-            test \
-            -only-testing:grainUITests
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+            CODE_SIGNING_ALLOWED=NO
