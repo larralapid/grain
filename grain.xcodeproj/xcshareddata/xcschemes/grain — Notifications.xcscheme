@@ -77,7 +77,7 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "LAUNCH_POC"
-            value = "splash"
+            value = "notifications"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

@@ -8,55 +8,125 @@ import SwiftData
 // shimmer content. Load ModelContainer in background, populate when ready.
 // Users see structure instantly — content fills in progressively.
 
-struct SkeletonTabView: View {
-    @ObservedObject private var appearance = AppearanceManager.shared
-    @State private var isDataReady = false
+struct SkeletonLaunchView: View {
+    private let modelContainerBuilder: () throws -> ModelContainer
+
+    @State private var launchPhase: SkeletonLaunchPhase = .loading
     @State private var selectedTab = 0
+    @State private var didStartLoading = false
+
+    init(modelContainerBuilder: @escaping () throws -> ModelContainer) {
+        self.modelContainerBuilder = modelContainerBuilder
+    }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            if isDataReady {
-                // Real views once data is loaded
-                Text("Real ReceiptListView")
-                    .tabItem { Label("receipts", systemImage: "doc.text") }
-                    .tag(0)
-            } else {
-                // Skeleton placeholders
-                SkeletonReceiptList()
-                    .tabItem { Label("receipts", systemImage: "doc.text") }
-                    .tag(0)
+        ZStack {
+            switch launchPhase {
+            case .loading:
+                skeletonTabs
+            case .loaded(let modelContainer):
+                MainTabView()
+                    .modelContainer(modelContainer)
+                    .transition(.opacity)
+            case .failed(let message):
+                failureContent(message: message)
             }
+        }
+        .animation(.easeInOut(duration: 0.3), value: launchPhase)
+        .task {
+            await loadModelContainerIfNeeded()
+        }
+    }
+
+    private var skeletonTabs: some View {
+        TabView(selection: $selectedTab) {
+            SkeletonReceiptList()
+                .tabItem { Label("receipts", systemImage: "doc.text") }
+                .tag(0)
 
             SkeletonScanPlaceholder()
                 .tabItem { Label("scan", systemImage: "viewfinder") }
                 .tag(1)
 
-            if isDataReady {
-                Text("Real AnalyticsView")
-                    .tabItem { Label("analytics", systemImage: "chart.bar") }
-                    .tag(2)
-            } else {
-                SkeletonAnalytics()
-                    .tabItem { Label("analytics", systemImage: "chart.bar") }
-                    .tag(2)
-            }
+            SkeletonAnalytics()
+                .tabItem { Label("analytics", systemImage: "chart.bar") }
+                .tag(2)
 
             SkeletonProductList()
                 .tabItem { Label("index", systemImage: "list.bullet") }
                 .tag(3)
 
             Text("settings")
+                .font(GrainTheme.mono(11))
+                .foregroundColor(GrainTheme.textSecondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(GrainTheme.bg)
                 .tabItem { Label("settings", systemImage: "gearshape") }
                 .tag(4)
         }
         .tint(GrainTheme.accent)
-        .onAppear {
-            // Simulate async ModelContainer init
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    isDataReady = true
-                }
+    }
+
+    private func failureContent(message: String) -> some View {
+        VStack(spacing: 16) {
+            Spacer()
+            Text("LAUNCH FAILED")
+                .font(GrainTheme.mono(11, weight: .semibold))
+                .tracking(2)
+                .foregroundColor(GrainTheme.textPrimary)
+            Text(message)
+                .font(GrainTheme.mono(11))
+                .foregroundColor(GrainTheme.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+            Button("Retry") {
+                launchPhase = .loading
+                didStartLoading = false
             }
+            .font(GrainTheme.mono(11, weight: .semibold))
+            .foregroundColor(GrainTheme.textPrimary)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .background(GrainTheme.surface)
+            .overlay(Rectangle().stroke(GrainTheme.border, lineWidth: 0.5))
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(GrainTheme.bg)
+    }
+
+    private func loadModelContainerIfNeeded() async {
+        guard !didStartLoading else { return }
+        didStartLoading = true
+        let builder = modelContainerBuilder
+
+        do {
+            let modelContainer = try await Task.detached(priority: .userInitiated) {
+                try builder()
+            }.value
+
+            await MainActor.run {
+                launchPhase = .loaded(modelContainer)
+            }
+        } catch {
+            await MainActor.run {
+                launchPhase = .failed("Unable to initialize local storage.")
+            }
+        }
+    }
+}
+
+private enum SkeletonLaunchPhase: Equatable {
+    case loading
+    case loaded(ModelContainer)
+    case failed(String)
+
+    static func == (lhs: SkeletonLaunchPhase, rhs: SkeletonLaunchPhase) -> Bool {
+        switch (lhs, rhs) {
+        case (.loading, .loading): return true
+        case (.failed(let a), .failed(let b)): return a == b
+        case (.loaded, .loaded): return false
+        default: return false
         }
     }
 }
@@ -252,6 +322,17 @@ struct SkeletonProductList: View {
 }
 
 #Preview {
-    SkeletonTabView()
-        .modelContainer(for: [Receipt.self, ReceiptItem.self, Product.self, Brand.self, BankTransaction.self, SpendingAnalytics.self], inMemory: true)
+    SkeletonLaunchView {
+        let schema = Schema([
+            Receipt.self,
+            ReceiptItem.self,
+            Product.self,
+            PricePoint.self,
+            Brand.self,
+            BankTransaction.self,
+            SpendingAnalytics.self
+        ])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        return try ModelContainer(for: schema, configurations: [configuration])
+    }
 }

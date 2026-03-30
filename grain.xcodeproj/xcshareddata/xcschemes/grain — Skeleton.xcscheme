@@ -77,7 +77,7 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "LAUNCH_POC"
-            value = "splash"
+            value = "skeleton"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

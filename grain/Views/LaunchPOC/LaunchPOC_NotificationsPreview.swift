@@ -9,16 +9,19 @@ import SwiftData
 // New users see onboarding tips instead. Masks load time entirely.
 
 struct NotificationsLaunchView: View {
-    @ObservedObject private var appearance = AppearanceManager.shared
-    @State private var isLoaded = false
+    private let modelContainerBuilder: () throws -> ModelContainer
+
+    @State private var launchPhase: NotificationsLaunchPhase = .loading
     @State private var scanLineY: CGFloat = 0
     @State private var notifications: [LaunchNotification] = []
     @State private var showNotifications = false
     @State private var barcodeOpacity: Double = 0
+    @State private var didStartLoading = false
 
     private let isReturningUser: Bool
 
-    init(isReturningUser: Bool = true) {
+    init(modelContainerBuilder: @escaping () throws -> ModelContainer, isReturningUser: Bool = true) {
+        self.modelContainerBuilder = modelContainerBuilder
         self.isReturningUser = isReturningUser
     }
 
@@ -26,14 +29,22 @@ struct NotificationsLaunchView: View {
         ZStack {
             GrainTheme.bg.ignoresSafeArea()
 
-            if isLoaded {
-                MainTabView()
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            } else {
+            switch launchPhase {
+            case .loading:
                 launchContent
+            case .loaded(let modelContainer):
+                MainTabView()
+                    .modelContainer(modelContainer)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            case .failed(let message):
+                failureContent(message: message)
+                    .transition(.opacity)
             }
         }
-        .animation(.spring(duration: 0.5), value: isLoaded)
+        .animation(.spring(duration: 0.5), value: launchPhase)
+        .task {
+            await loadModelContainerIfNeeded()
+        }
     }
 
     private var launchContent: some View {
@@ -221,10 +232,66 @@ struct NotificationsLaunchView: View {
             }
         }
 
-        // Complete loading
-        // In production: replace with actual ModelContainer init callback
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            isLoaded = true
+    }
+
+    private func failureContent(message: String) -> some View {
+        VStack(spacing: 16) {
+            Spacer()
+            Text("LAUNCH FAILED")
+                .font(GrainTheme.mono(11, weight: .semibold))
+                .tracking(2)
+                .foregroundColor(GrainTheme.textPrimary)
+            Text(message)
+                .font(GrainTheme.mono(11))
+                .foregroundColor(GrainTheme.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+            Button("Retry") {
+                launchPhase = .loading
+                didStartLoading = false
+            }
+            .font(GrainTheme.mono(11, weight: .semibold))
+            .foregroundColor(GrainTheme.textPrimary)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .background(GrainTheme.surface)
+            .overlay(Rectangle().stroke(GrainTheme.border, lineWidth: 0.5))
+            Spacer()
+        }
+    }
+
+    private func loadModelContainerIfNeeded() async {
+        guard !didStartLoading else { return }
+        didStartLoading = true
+        let builder = modelContainerBuilder
+
+        do {
+            let modelContainer = try await Task.detached(priority: .userInitiated) {
+                try builder()
+            }.value
+
+            await MainActor.run {
+                launchPhase = .loaded(modelContainer)
+            }
+        } catch {
+            await MainActor.run {
+                launchPhase = .failed("Unable to initialize local storage.")
+            }
+        }
+    }
+}
+
+private enum NotificationsLaunchPhase: Equatable {
+    case loading
+    case loaded(ModelContainer)
+    case failed(String)
+
+    static func == (lhs: NotificationsLaunchPhase, rhs: NotificationsLaunchPhase) -> Bool {
+        switch (lhs, rhs) {
+        case (.loading, .loading): return true
+        case (.failed(let a), .failed(let b)): return a == b
+        case (.loaded, .loaded): return false
+        default: return false
         }
     }
 }
@@ -238,11 +305,25 @@ private struct LaunchNotification: Identifiable {
 }
 
 #Preview("Returning User") {
-    NotificationsLaunchView(isReturningUser: true)
-        .modelContainer(for: [Receipt.self, ReceiptItem.self, Product.self, Brand.self, BankTransaction.self, SpendingAnalytics.self], inMemory: true)
+    NotificationsLaunchView(
+        modelContainerBuilder: {
+            try ModelContainer(
+                for: Schema([Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self]),
+                configurations: [ModelConfiguration(schema: Schema([Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self]), isStoredInMemoryOnly: true)]
+            )
+        },
+        isReturningUser: true
+    )
 }
 
 #Preview("New User") {
-    NotificationsLaunchView(isReturningUser: false)
-        .modelContainer(for: [Receipt.self, ReceiptItem.self, Product.self, Brand.self, BankTransaction.self, SpendingAnalytics.self], inMemory: true)
+    NotificationsLaunchView(
+        modelContainerBuilder: {
+            try ModelContainer(
+                for: Schema([Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self]),
+                configurations: [ModelConfiguration(schema: Schema([Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self]), isStoredInMemoryOnly: true)]
+            )
+        },
+        isReturningUser: false
+    )
 }
