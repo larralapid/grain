@@ -10,8 +10,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- GitHub Actions CI workflow for automated static analysis (`xcodebuild analyze`), iOS simulator build, unit tests, and UI tests on pushes and pull requests.
-- GitHub Actions CI workflow (`build.yml`) that builds and tests on every push and pull request to `main`
+- GitHub Actions Build workflow (`build.yml`) that runs iOS simulator build and tests on pushes and pull requests to `main`
 - Build status badge in README
 
 ### Planned
