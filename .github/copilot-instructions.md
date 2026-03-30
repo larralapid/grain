@@ -110,7 +110,7 @@ All persistent models use SwiftData `@Model`. Follow these rules:
 
 ### Applying the Theme
 
-Views must use the `.grainScreen()` modifier (defined in `GrainTheme.swift`) as their root background.
+For new or significantly updated screens, prefer using the `.grainScreen()` modifier (defined in `GrainTheme.swift`) as the root background. Existing screens that already use `ZStack { GrainTheme.bg.ignoresSafeArea() ... }` are acceptable and can be gradually aligned with `.grainScreen()` when touched.
 
 ---
 
