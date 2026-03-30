@@ -17,7 +17,7 @@ The following is a set of guidelines for contributing to this repository. These 
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to [insert email/contact here].
+This project and everyone participating in it are governed by our Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to [insert email/contact here].
 
 ## How Can I Contribute?
 
@@ -41,7 +41,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ### Your First Code Contribution
 
-Unsure where to begin contributing? You can start by looking through `good first issue` and `help wanted` issues. 
+Unsure where to begin contributing? You can start by looking through `good first issue` and `help wanted` issues.
 
 ### Pull Requests
 
