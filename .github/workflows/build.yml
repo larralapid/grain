@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build & Test
@@ -25,14 +28,14 @@ jobs:
             xcodebuild build \
               -project grain.xcodeproj \
               -scheme grain \
-              -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+              -destination 'platform=iOS Simulator' \
               CODE_SIGNING_ALLOWED=NO \
               | xcpretty
           else
             xcodebuild build \
               -project grain.xcodeproj \
               -scheme grain \
-              -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+              -destination 'platform=iOS Simulator' \
               CODE_SIGNING_ALLOWED=NO
           fi
 
@@ -43,13 +46,13 @@ jobs:
             xcodebuild test \
               -project grain.xcodeproj \
               -scheme grain \
-              -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+              -destination 'platform=iOS Simulator' \
               CODE_SIGNING_ALLOWED=NO \
               | xcpretty
           else
             xcodebuild test \
               -project grain.xcodeproj \
               -scheme grain \
-              -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+              -destination 'platform=iOS Simulator' \
               CODE_SIGNING_ALLOWED=NO
           fi
