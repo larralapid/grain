@@ -215,4 +215,4 @@ When working across sessions, agents with memory-persistence capabilities should
 | Build/Test | Verified lint, build, or test commands |
 | Known issues | Newly discovered bugs or tech debt not yet filed as issues |
 
-**Do not store**: secrets, user data, or implementation details that are visible in the source code.
+**Do not store**: secrets, user data, or large code excerpts. Prefer durable conventions, commands, and known issues over transient implementation details that are already available in the source code.
