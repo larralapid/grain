@@ -1,6 +1,6 @@
-# Grain — Wiki
+# Grain — Docs
 
-Welcome to the Grain project wiki. This directory mirrors the [GitHub Wiki](../../wiki) and serves as the source of truth for project documentation.
+Welcome to the Grain project docs. This directory serves as the source of truth for project documentation.
 
 ## Pages
 
@@ -8,6 +8,7 @@ Welcome to the Grain project wiki. This directory mirrors the [GitHub Wiki](../.
 |------|-------------|
 | [Current State](Current-State.md) | Architecture audit, what works, what's broken, priority next steps |
 | [Redesign Spec](Redesign-Spec.md) | Inspiration analysis, design system, and three wireframe directions |
+| [Project Board](https://github.com/users/larralapid/projects/18) | Issue tracking, prioritization, and sprint planning |
 | [ADR Index](adr/README.md) | Architecture Decision Records |
 
 ## Architecture Decision Records

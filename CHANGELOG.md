@@ -9,6 +9,10 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- GitHub Actions Build workflow (`build.yml`) that runs iOS simulator build and tests on pushes and pull requests to `main`
+- Build status badge in README
+
 ### Planned
 - Wire "+" toolbar button to manual receipt entry form
 - Wire "Edit" button on scan preview
@@ -19,7 +23,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - Tax Categories configuration
 - Deduction Rules configuration
 - Unit tests for `AnalyticsService`
-- Enable CloudKit sync (see [ADR-0005](wiki/adr/ADR-0005-local-only-storage.md))
+- Enable CloudKit sync (see [ADR-0005](docs/adr/ADR-0005-local-only-storage.md))
 
 ---
 
@@ -35,12 +39,12 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - **SwiftData models** — `Receipt`, `ReceiptItem`, `Product`, `PricePoint`, `Brand`, `BankTransaction`, `SpendingAnalytics`
 - **CloudKit entitlement** — present in project, not yet active
 
-### Architecture decisions (see [wiki/adr/](wiki/adr/README.md))
-- SwiftUI + SwiftData on iOS 17+ ([ADR-0001](wiki/adr/ADR-0001-swiftui-swiftdata.md))
-- Apple Vision framework for on-device OCR ([ADR-0002](wiki/adr/ADR-0002-vision-framework-ocr.md))
-- Zero external dependencies ([ADR-0003](wiki/adr/ADR-0003-zero-external-dependencies.md))
-- Swift Charts for analytics ([ADR-0004](wiki/adr/ADR-0004-swift-charts.md))
-- Local-only storage; CloudKit deferred ([ADR-0005](wiki/adr/ADR-0005-local-only-storage.md))
+### Architecture decisions (see [docs/adr/](docs/adr/README.md))
+- SwiftUI + SwiftData on iOS 17+ ([ADR-0001](docs/adr/ADR-0001-swiftui-swiftdata.md))
+- Apple Vision framework for on-device OCR ([ADR-0002](docs/adr/ADR-0002-vision-framework-ocr.md))
+- Zero external dependencies ([ADR-0003](docs/adr/ADR-0003-zero-external-dependencies.md))
+- Swift Charts for analytics ([ADR-0004](docs/adr/ADR-0004-swift-charts.md))
+- Local-only storage; CloudKit deferred ([ADR-0005](docs/adr/ADR-0005-local-only-storage.md))
 
 ### Known issues
 - OCR parser (`ReceiptScannerService`) is a proof-of-concept regex approach; accuracy on real-world receipts is limited
@@ -48,7 +52,6 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - `SpendingAnalytics` is a SwiftData `@Model` but used transiently — should be a plain struct
 - No cascading deletes declared on `Receipt` → `ReceiptItem` relationship
 - No user-facing error states; all failures are swallowed with `print()`
-- Zero automated test coverage
 - `ContentView.swift` and `Item.swift` are unused Xcode template leftovers
 
 ---
