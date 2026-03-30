@@ -251,8 +251,8 @@ private enum LaunchPhase: Equatable {
             return true
         case (.failed(let lhsMessage), .failed(let rhsMessage)):
             return lhsMessage == rhsMessage
-        case (.loaded(let lhsContainer), .loaded(let rhsContainer)):
-            return ObjectIdentifier(lhsContainer) == ObjectIdentifier(rhsContainer)
+        case (.loaded, .loaded):
+            return true
         default:
             return false
         }
