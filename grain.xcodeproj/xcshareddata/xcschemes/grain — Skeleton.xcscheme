@@ -29,6 +29,15 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "C1EA4BE92E24D0D00072722C"
+            BuildableName = "grain.app"
+            BlueprintName = "grain"
+            ReferencedContainer = "container:grain.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <Testables>
          <TestableReference
             skipped = "NO"
@@ -77,7 +86,7 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "LAUNCH_POC"
-            value = "splash"
+            value = "skeleton"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

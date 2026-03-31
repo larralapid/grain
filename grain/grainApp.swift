@@ -12,10 +12,28 @@ import SwiftData
 struct grainApp: App {
     @ObservedObject private var appearance = AppearanceManager.shared
 
+    /// Set via scheme environment variable LAUNCH_POC to switch launch experience.
+    /// Values: "splash" (default), "skeleton", "notifications"
+    private var launchPOC: String {
+        ProcessInfo.processInfo.environment["LAUNCH_POC"] ?? "splash"
+    }
+
     var body: some Scene {
         WindowGroup {
-            LaunchExperienceView(modelContainerBuilder: Self.makeSharedModelContainer)
+            launchView
                 .preferredColorScheme(appearance.isDarkMode ? .dark : .light)
+        }
+    }
+
+    @ViewBuilder
+    private var launchView: some View {
+        switch launchPOC {
+        case "skeleton":
+            SkeletonLaunchView(modelContainerBuilder: Self.makeSharedModelContainer)
+        case "notifications":
+            NotificationsLaunchView(modelContainerBuilder: Self.makeSharedModelContainer)
+        default:
+            LaunchExperienceView(modelContainerBuilder: Self.makeSharedModelContainer)
         }
     }
 

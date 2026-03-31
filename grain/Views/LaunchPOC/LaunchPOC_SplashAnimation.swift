@@ -244,6 +244,19 @@ private enum LaunchPhase: Equatable {
     case loading
     case loaded
     case failed(String)
+
+    static func == (lhs: LaunchPhase, rhs: LaunchPhase) -> Bool {
+        switch (lhs, rhs) {
+        case (.loading, .loading):
+            return true
+        case (.failed(let lhsMessage), .failed(let rhsMessage)):
+            return lhsMessage == rhsMessage
+        case (.loaded, .loaded):
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 #Preview {
