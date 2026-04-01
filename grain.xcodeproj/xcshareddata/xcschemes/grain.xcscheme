@@ -80,7 +80,6 @@
             BlueprintIdentifier = "C1EA4BE92E24D0D00072722C"
             BuildableName = "grain.app"
             BlueprintName = "grain"
-            ReferencedContainer = "container:grain.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <EnvironmentVariables>

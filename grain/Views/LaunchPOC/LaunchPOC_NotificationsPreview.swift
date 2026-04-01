@@ -242,6 +242,9 @@ struct NotificationsLaunchView: View {
             Button("Retry") {
                 launchPhase = .loading
                 didStartLoading = false
+                Task {
+                    await loadModelContainerIfNeeded()
+                }
             }
             .font(GrainTheme.mono(11, weight: .semibold))
             .foregroundColor(GrainTheme.textPrimary)
@@ -264,7 +267,9 @@ struct NotificationsLaunchView: View {
             }.value
 
             await MainActor.run {
+#if DEBUG
                 DemoDataSeeder.seedIfNeeded(in: modelContainer.mainContext)
+#endif
                 launchPhase = .loaded(modelContainer)
             }
         } catch {
