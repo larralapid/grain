@@ -83,13 +83,13 @@
             ReferencedContainer = "container:grain.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <AdditionalOptions>
-         <AdditionalOption
-            key = "APP_DISTRIBUTOR_ID_OVERRIDE"
-            value = "com.apple.TestFlight"
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "LAUNCH_POC"
+            value = "notifications"
             isEnabled = "YES">
-         </AdditionalOption>
-      </AdditionalOptions>
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
