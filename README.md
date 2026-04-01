@@ -1,6 +1,5 @@
 # grain
 
-**who gets paid when you buy things.**
 
 Receipt scanner and expense tracker for iOS. Scans paper receipts with on-device OCR, tracks spending at the product and brand level, and shows you where your money actually goes.
 
