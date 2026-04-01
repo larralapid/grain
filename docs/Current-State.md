@@ -1,128 +1,85 @@
-# Grain — Current State Assessment
+# Grain Current State Assessment
 
-*Audited 2026-03-22 against commit `613fe57`*
+Audited on 2026-04-01 against local branch main.
 
-## Architecture
+## Executive Snapshot
 
-Native iOS 17+ app. SwiftUI + SwiftData. Zero external dependencies — uses only Apple frameworks (Vision, VisionKit, Charts, UIKit for camera).
+Grain has a healthy proof-of-concept core: scan receipts, parse text, store receipts, browse details, and view analytics.
 
-**17 Swift files** across three layers:
+The main project risk is not architecture. The main risk is product completeness and scope discipline for MVP.
 
-| Layer | Files | Role |
-|-------|-------|------|
-| Models | `Receipt`, `ReceiptItem`, `Product`, `PricePoint`, `Brand`, `BankTransaction`, `SpendingAnalytics` | SwiftData `@Model` classes |
-| Views | `MainTabView`, `ReceiptListView`, `ReceiptScannerView`, `ReceiptDetailView`, `ProductsView`, `AnalyticsView`, `SettingsView` | SwiftUI views |
-| Services | `ReceiptScannerService`, `AnalyticsService` | Business logic |
-| Dead code | `ContentView`, `Item` | Xcode template leftovers, unused |
+## Confirmed Current State
 
-## What Works End-to-End
+| Area | Current Status | Notes |
+|------|----------------|------|
+| Platform and stack | iOS 17+, SwiftUI, SwiftData, Vision, Swift Charts | Aligned with ADRs |
+| Dependencies | Apple frameworks only | Aligned with ADR-0003 |
+| Storage strategy | Local only | Aligned with ADR-0005 |
+| Core flow | Scan -> OCR -> parse -> save -> list/detail | Working at POC quality |
+| Analytics | Receipt/category/merchant aggregations and charts | Working |
+| Product index | Product and brand indexing from receipt items | Working |
+| CI workflow | Build + test workflow exists | Present in .github/workflows/build.yml |
 
-1. **Scan → Parse → Save → View**: Camera captures image → Vision OCR extracts text → regex parser pulls merchant/items/totals → Receipt saved to SwiftData → appears in list → detail view shows itemized breakdown.
+## Gaps and Product Debt
 
-2. **Analytics**: Receipts in DB → `AnalyticsService` aggregates by category/brand/merchant → Swift Charts renders bar charts with period selector (weekly/monthly/quarterly/yearly).
+### UX and flow gaps
 
-3. **Product & Brand catalog**: Auto-populated from receipt items. Search works. Price history tracked via `PricePoint`.
+- Receipt list plus button is still a TODO (manual receipt entry not wired).
+- Scan proof Edit button is still a TODO.
+- Settings routes are placeholders (Export, Import, Tax Categories, Deduction Rules).
 
-4. **Receipt editing**: Edit merchant, address, category, notes, date from detail view. Saves correctly.
+### Data and feature gaps
 
-5. **Delete**: Swipe-to-delete on receipt list.
+- Receipt image persistence is not wired to Receipt.imageData.
+- BankTransaction model exists but has no import, matching, or UI flow.
+- SpendingAnalytics is persisted as a model even though it behaves like derived data.
 
-## What's Broken or Stubbed
+### Reliability and quality gaps
 
-### Dead buttons (no handler at all)
+- OCR parser is still regex-based and fragile on real receipt variety.
+- Service/view errors still rely on print-based handling in key paths.
+- Unit tests exist for model coverage, but service/parser regression coverage is still limited.
 
-| Location | Button | Code |
-|----------|--------|------|
-| `ReceiptScannerView:~70` | "Edit" on scan preview | `// TODO: Implement edit functionality` |
-| `ReceiptListView:~57` | "+" toolbar button | `// TODO: Add manual receipt entry` |
+## Current State vs Ideal MVP
 
-### Settings — entirely fake
+| Capability | Current | Ideal MVP | Delta |
+|-----------|---------|-----------|-------|
+| Capture and save receipt | Works | Works reliably with image attachment | Persist imageData and add validation |
+| Parse receipt content | Works for basic receipts | Robust for grocery, pharmacy, restaurant variants | Add parser test corpus and parser improvements |
+| Review and edit scanned receipt | Partial | User can fully correct parsed output | Wire Edit flow from scan proof |
+| Manual receipt entry | Missing | Available as fallback | Build minimal manual entry screen |
+| Expense analytics | Works | Works with trustworthy totals and period filters | Add validation tests and edge-case handling |
+| Error UX | Weak | User-facing recoverable errors | Replace silent catches with alert states |
+| CI confidence | Moderate | Green build and test on every PR | Keep workflow healthy and enforce checks |
 
-All four rows in `SettingsView` navigate to `Text("…coming soon")`:
-- Export Data
-- Import Bank Transactions
-- Tax Categories
-- Deduction Rules
+## PM Assessment
 
-### Built but never wired
+### What is healthy
 
-| Thing | Status |
-|-------|--------|
-| `BankTransaction` model | Complete schema with `matchConfidence`, `isMatched`, `transactionType` enum — but nothing imports, displays, or matches transactions anywhere |
-| `Receipt.imageData` | Field exists, never populated. Scanner doesn't save the photo. |
-| `Receipt.bankTransactionId` | Foreign key to bank transactions — no linking logic |
-| `Product.imageUrl` | Stored but never rendered |
-| CloudKit entitlement | Present in project, never used |
+- Architecture choices are coherent and intentionally constrained.
+- Codebase layout is understandable and suitable for iteration.
+- Delivery pace is high with active issue and PR throughput.
 
-### Tax deductible calculation — hardcoded
+### What needs immediate management attention
 
-```swift
-// AnalyticsService.swift
-if receipt.category == "Business" || receipt.category == "Medical" || receipt.category == "Charitable"
-```
+- Backlog contains out-of-scope or conflicting items for current local-only MVP.
+- Several old issues are now completed by merged PRs and should be closed.
+- MVP definition needs explicit acceptance criteria so feature work does not sprawl.
 
-No user-configurable tax rules. The "Tax Categories" setting is a stub.
+## Priority Workstream Recommendation
 
-## Data Model Issues
+1. Stabilize backlog hygiene:
+- Close completed and out-of-scope issues.
+- Keep only active MVP issues in the next milestone lane.
 
-- **Decimal for currency** — correct choice, no floating-point problems.
-- **No cascading deletes defined** — deleting a Receipt doesn't explicitly clean up its ReceiptItems. SwiftData may handle this via relationship rules, but it's not declared.
-- **`SpendingAnalytics`** is a SwiftData model but is created transiently by `AnalyticsService` and never persisted or queried — it should be a plain struct.
+2. Close MVP usability gaps:
+- Manual entry fallback.
+- Scan proof edit flow.
+- Receipt image persistence.
 
-## OCR Parser Quality
+3. Improve reliability for real testing:
+- Parser regression test set.
+- User-facing error states.
 
-`ReceiptScannerService.parseReceiptFromText()` uses basic regex:
-
-- Looks for `$?(\d+\.\d{2})` patterns to find amounts
-- Assigns the largest amount as total, second-largest as subtotal
-- Calculates tax as `total - subtotal` (fragile — assumes exactly two large amounts)
-- Item parsing: splits lines, looks for price patterns at end of line
-- Date parsing: tries 4 `DateFormatter` patterns sequentially
-- **No handling for**: multi-page receipts, non-USD currencies, tip lines, discount lines, BOGO, weight-based items
-
-This will produce garbage output for most real-world receipts. It's a proof-of-concept parser.
-
-## Error Handling
-
-Every error is swallowed with `print()`:
-
-- `ReceiptScannerView`: `print("Error saving receipt: \(error)")`
-- `ReceiptDetailView`: `print("Error saving receipt: \(error)")`
-- `AnalyticsService`: 3 catch blocks with `print()`, all return `nil`
-- `grainApp`: `fatalError()` on ModelContainer init failure (standard pattern)
-
-No user-facing error states. If OCR fails, the user sees nothing.
-
-## Test Coverage
-
-**Zero.** All three test files are Xcode template stubs with no assertions:
-
-- `grainTests.swift` — empty `@Test` function
-- `grainUITests.swift` — launch test stub
-- `grainUITestsLaunchTests.swift` — screenshot attachment only
-
-## Missing Infrastructure
-
-- No CI/CD
-- No logging framework (just `print`)
-- No crash reporting
-- No onboarding/tutorial
-- No accessibility labels on custom views
-- No localization
-- No deep linking
-
-## Priority Next Steps
-
-1. **Receipt image persistence** — save the camera photo to `Receipt.imageData` so users can refer back to the original scan. One-line fix in `ReceiptScannerView`.
-
-2. **Manual receipt entry** — wire the "+" button to a form. The `EditReceiptView` already exists and could be reused with minor changes.
-
-3. **Error states in UI** — replace `print()` catches with user-visible alerts. Silent failures are the worst UX.
-
-4. **OCR parser improvements** — the regex approach will always be limited. Consider integrating Apple's `DataScannerViewController` (Live Text) or a server-side ML parser for production quality.
-
-5. **Tests for AnalyticsService** — pure computation with no side effects, easy to test. Start here for coverage.
-
-6. **Delete dead code** — remove `ContentView.swift` and `Item.swift` (Xcode template leftovers).
-
-7. **Bank transaction integration** — the model layer is ready. Needs: import UI, matching algorithm, confirmation flow.
+4. Delay non-MVP platform expansion:
+- Cloud sync, auth, backend API, and server-side OCR stay deferred unless ADR scope changes.
