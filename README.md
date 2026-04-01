@@ -1,5 +1,8 @@
 # grain
 
+[![Build](https://github.com/larralapid/grain/actions/workflows/build.yml/badge.svg)](https://github.com/larralapid/grain/actions/workflows/build.yml)
+
+Grain is a comprehensive iOS app that scans receipts and tracks expenses down to the most granular level. Track your products, brands, and spending patterns with powerful analytics and insights.
 
 Receipt scanner and expense tracker for iOS. Scans paper receipts with on-device OCR, tracks spending at the product and brand level, and shows you where your money actually goes.
 

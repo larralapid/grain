@@ -1,13 +1,6 @@
 import SwiftUI
 import SwiftData
 
-// MARK: - POC 3: Animated Launch Screen with Notifications Preview
-// Ref: Issue #20 — Reduce app cold start time / add launch experience
-//
-// Strategy: Full-screen branded animation (barcode scan line + receipt roll)
-// with "recent activity" notification cards for returning users.
-// New users see onboarding tips instead. Masks load time entirely.
-
 struct NotificationsLaunchView: View {
     private let modelContainerBuilder: () throws -> ModelContainer
 
@@ -249,6 +242,9 @@ struct NotificationsLaunchView: View {
             Button("Retry") {
                 launchPhase = .loading
                 didStartLoading = false
+                Task {
+                    await loadModelContainerIfNeeded()
+                }
             }
             .font(GrainTheme.mono(11, weight: .semibold))
             .foregroundColor(GrainTheme.textPrimary)
@@ -271,6 +267,9 @@ struct NotificationsLaunchView: View {
             }.value
 
             await MainActor.run {
+#if DEBUG
+                DemoDataSeeder.seedIfNeeded(in: modelContainer.mainContext)
+#endif
                 launchPhase = .loaded(modelContainer)
             }
         } catch {
@@ -310,24 +309,14 @@ private struct LaunchNotification: Identifiable {
 
 #Preview("Returning User") {
     NotificationsLaunchView(
-        modelContainerBuilder: {
-            try ModelContainer(
-                for: Schema([Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self]),
-                configurations: [ModelConfiguration(schema: Schema([Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self]), isStoredInMemoryOnly: true)]
-            )
-        },
+        modelContainerBuilder: { DemoDataSeeder.makePreviewContainer() },
         isReturningUser: true
     )
 }
 
 #Preview("New User") {
     NotificationsLaunchView(
-        modelContainerBuilder: {
-            try ModelContainer(
-                for: Schema([Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self]),
-                configurations: [ModelConfiguration(schema: Schema([Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self]), isStoredInMemoryOnly: true)]
-            )
-        },
+        modelContainerBuilder: { DemoDataSeeder.makePreviewContainer() },
         isReturningUser: false
     )
 }

@@ -3,6 +3,7 @@ import Vision
 import VisionKit
 import UIKit
 
+@MainActor
 class ReceiptScannerService: ObservableObject {
     @Published var isScanning = false
     @Published var scannedText = ""
@@ -13,25 +14,23 @@ class ReceiptScannerService: ObservableObject {
             return nil
         }
         
+        var recognizedTextResult: String? = nil
+        
         let request = VNRecognizeTextRequest { [weak self] request, error in
             if let error = error {
-                DispatchQueue.main.async {
+                // Store error via main actor since service is main-actor isolated
+                Task { @MainActor in
                     self?.lastError = error
                 }
                 return
             }
-            
             guard let observations = request.results as? [VNRecognizedTextObservation] else {
                 return
             }
-            
             let recognizedText = observations.compactMap { observation in
                 observation.topCandidates(1).first?.string
             }.joined(separator: "\n")
-            
-            DispatchQueue.main.async {
-                self?.scannedText = recognizedText
-            }
+            recognizedTextResult = recognizedText
         }
         
         request.recognitionLevel = .accurate
@@ -41,16 +40,17 @@ class ReceiptScannerService: ObservableObject {
         
         do {
             try handler.perform([request])
-            return parseReceiptFromText(scannedText)
+            let text = recognizedTextResult ?? ""
+            // Update published property on the main actor
+            self.scannedText = text
+            return parseReceiptFromText(text)
         } catch {
-            DispatchQueue.main.async {
-                self.lastError = error
-            }
+            self.lastError = error
             return nil
         }
     }
     
-    private func parseReceiptFromText(_ text: String) -> Receipt? {
+    nonisolated private func parseReceiptFromText(_ text: String) -> Receipt? {
         let lines = text.components(separatedBy: .newlines)
         var merchantName = ""
         var total: Decimal = 0
@@ -112,7 +112,7 @@ class ReceiptScannerService: ObservableObject {
         return receipt
     }
     
-    private func extractAmount(from text: String) -> Decimal? {
+    nonisolated private func extractAmount(from text: String) -> Decimal? {
         let pattern = #"\$?(\d+\.\d{2})"#
         
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []),
@@ -124,7 +124,7 @@ class ReceiptScannerService: ObservableObject {
         return Decimal(string: String(text[range]))
     }
     
-    private func extractDate(from text: String) -> Date? {
+    nonisolated private func extractDate(from text: String) -> Date? {
         let dateFormatter = DateFormatter()
         let patterns = [
             "MM/dd/yyyy",
@@ -144,7 +144,7 @@ class ReceiptScannerService: ObservableObject {
         return nil
     }
     
-    private func parseReceiptItem(from text: String) -> ReceiptItem? {
+    nonisolated private func parseReceiptItem(from text: String) -> ReceiptItem? {
         let cleanLine = text.trimmingCharacters(in: .whitespaces)
         
         if cleanLine.uppercased().contains("TOTAL") ||

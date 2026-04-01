@@ -10,8 +10,12 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Notifications-based launch screen for returning users with recent activity cards and a fast handoff into the main app
 - GitHub Actions Build workflow (`build.yml`) that runs iOS simulator build and tests on pushes and pull requests to `main`
-- Build status badge in README
+
+<p>
+  <img src="screenshots/09-launch-screen.gif" alt="Notifications launch screen preview" width="280" />
+</p>
 
 ### Planned
 - Wire "+" toolbar button to manual receipt entry form
