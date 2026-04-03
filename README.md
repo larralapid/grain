@@ -13,92 +13,29 @@ grain — local-first iOS receipt scanner. scan · parse · track · analyze.
 <table>
 <tr valign="top">
 
-<td width="28%">
-
-<table width="100%"><tr><td bgcolor="000000"><b><samp><font color="white">N&thinsp;A&thinsp;V</font></samp></b></td></tr></table>
-
-|&thinsp;- <a href="#what-it-does">what it does</a><br />
-|&thinsp;- <a href="#stack">stack</a><br />
-|&thinsp;- <a href="#run-locally">run locally</a><br />
-|&thinsp;- <a href="#status">status</a><br />
-
-<br />
-
-<table width="100%"><tr><td bgcolor="000000"><b><samp><font color="white">D&thinsp;O&thinsp;C&thinsp;S</font></samp></b></td></tr></table>
-
-|&thinsp;- <a href="docs/Current-State.md">current state</a><br />
-|&thinsp;- <a href="docs/Redesign-Spec.md">redesign spec</a><br />
-|&thinsp;- <a href="docs/adr/README.md#index">ADRs</a><br />
-|&thinsp;- <a href="CHANGELOG.md">changelog</a><br />
-
-<br />
-
-<table width="100%"><tr><td bgcolor="000000"><b><samp><font color="white">S&thinsp;T&thinsp;A&thinsp;C&thinsp;K</font></samp></b></td></tr></table>
-
-SwiftUI · SwiftData<br />
-Apple Vision OCR<br />
-Swift Charts<br />
-iOS&thinsp;17+ · local-only<br />
-
-</td>
-
-<td width="44%">
+<td width="65%">
 
 <table width="100%">
 
 <tr><td colspan="2" bgcolor="000000" align="center"><b><samp><font color="white">F&thinsp;L&thinsp;O&thinsp;W</font></samp></b></td></tr>
 <tr><td colspan="2" align="center"><br /><samp><font color="888888">scan&thinsp;→&thinsp;ocr&thinsp;→&thinsp;parse&thinsp;→&thinsp;save&thinsp;→&thinsp;browse&thinsp;→&thinsp;analyze</font></samp><br /><br /></td></tr>
 
-<tr><td colspan="2" bgcolor="000000" align="center"><b><samp><font color="white">F&thinsp;E&thinsp;A&thinsp;T&thinsp;U&thinsp;R&thinsp;E&thinsp;S</font></samp></b></td></tr>
-
 <tr>
-<td bgcolor="0d0d0d" width="50%" valign="top">
-<table width="100%"><tr><td bgcolor="1c1c1c"><samp><font color="white">scan</font></samp></td></tr></table>
-<sup><font color="888888">camera · viewfinder · ocr</font></sup><br />
-<a href="#what-it-does"><sup>→ what it does</sup></a>&ensp;<sup><font color="44aa66">✓</font></sup>
+<td width="50%" valign="top" bgcolor="0d0d0d">
+<table width="100%"><tr><td bgcolor="000000"><b><samp><font color="white">D&thinsp;O&thinsp;C&thinsp;S</font></samp></b></td></tr></table>
+|&thinsp;- <a href="docs/Current-State.md">current state</a><br />
+|&thinsp;- <a href="docs/Redesign-Spec.md">redesign spec</a><br />
+|&thinsp;- <a href="docs/adr/README.md#index">ADRs</a><br />
+|&thinsp;- <a href="CHANGELOG.md">changelog</a><br />
 </td>
-<td bgcolor="0d0d0d" width="50%" valign="top">
-<table width="100%"><tr><td bgcolor="1c1c1c"><samp><font color="white">receipts</font></samp></td></tr></table>
-<sup><font color="888888">list · detail · swipe</font></sup><br />
-<a href="#what-it-does"><sup>→ what it does</sup></a>&ensp;<sup><font color="44aa66">✓</font></sup>
+<td width="50%" valign="top" bgcolor="0d0d0d">
+<table width="100%"><tr><td bgcolor="000000"><b><samp><font color="white">N&thinsp;A&thinsp;V</font></samp></b></td></tr></table>
+|&thinsp;- <a href="#what-it-does">what it does</a><br />
+|&thinsp;- <a href="#stack">stack</a><br />
+|&thinsp;- <a href="#run-locally">run locally</a><br />
+|&thinsp;- <a href="#status">status</a><br />
 </td>
 </tr>
-
-<tr>
-<td bgcolor="0d0d0d" valign="top">
-<table width="100%"><tr><td bgcolor="1c1c1c"><samp><font color="white">analytics</font></samp></td></tr></table>
-<sup><font color="888888">category · brand · merchant</font></sup><br />
-<a href="#what-it-does"><sup>→ what it does</sup></a>&ensp;<sup><font color="44aa66">✓</font></sup>
-</td>
-<td bgcolor="0d0d0d" valign="top">
-<table width="100%"><tr><td bgcolor="1c1c1c"><samp><font color="white">price watch</font></samp></td></tr></table>
-<sup><font color="888888">item · history · trend</font></sup><br />
-<a href="#what-it-does"><sup>→ what it does</sup></a>&ensp;<sup><font color="44aa66">✓</font></sup>
-</td>
-</tr>
-
-<tr>
-<td bgcolor="0d0d0d" valign="top">
-<table width="100%"><tr><td bgcolor="1c1c1c"><samp><font color="white">index</font></samp></td></tr></table>
-<sup><font color="888888">products · brands · retailers</font></sup><br />
-<a href="#what-it-does"><sup>→ what it does</sup></a>&ensp;<sup><font color="44aa66">✓</font></sup>
-</td>
-<td bgcolor="0d0d0d" valign="top">
-<table width="100%"><tr><td bgcolor="1c1c1c"><samp><font color="white">manual entry</font></samp></td></tr></table>
-<sup><font color="888888">fallback · no camera</font></sup><br />
-<a href="docs/Current-State.md"><sup>→ current state</sup></a>&ensp;<sup><font color="aa5533">○ todo</font></sup>
-</td>
-</tr>
-
-<tr><td colspan="2" bgcolor="000000" align="center"><b><samp><font color="white">S&thinsp;T&thinsp;A&thinsp;T&thinsp;S</font></samp></b></td></tr>
-<tr><td colspan="2" align="center"><br />
-<table align="center"><tr>
-<td bgcolor="0d0d0d" align="center">&thinsp;<b><samp><font color="white">5</font></samp></b>&thinsp;<sup><font color="666666">tabs</font></sup>&thinsp;</td>
-<td bgcolor="0d0d0d" align="center">&thinsp;<b><samp><font color="white">7</font></samp></b>&thinsp;<sup><font color="666666">models</font></sup>&thinsp;</td>
-<td bgcolor="0d0d0d" align="center">&thinsp;<b><samp><font color="white">5</font></samp></b>&thinsp;<sup><font color="666666">ADRs</font></sup>&thinsp;</td>
-<td bgcolor="0d0d0d" align="center">&thinsp;<b><samp><font color="white">20</font></samp></b>&thinsp;<sup><font color="666666">files</font></sup>&thinsp;</td>
-</tr></table>
-<br /></td></tr>
 
 <tr><td colspan="2" bgcolor="000000" align="center"><b><samp><font color="white">N&thinsp;O&thinsp;T&thinsp;E&thinsp;S</font></samp></b></td></tr>
 
@@ -127,7 +64,7 @@ iOS&thinsp;17+ · local-only<br />
 
 </td>
 
-<td width="28%" align="center">
+<td width="35%" align="center">
 
 <table width="100%"><tr><td bgcolor="000000" align="center"><b><samp><font color="white">g&thinsp;r&thinsp;a&thinsp;i&thinsp;n</font></samp></b></td></tr></table>
 
