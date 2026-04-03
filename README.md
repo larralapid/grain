@@ -10,7 +10,7 @@
 grain — local-first iOS receipt scanner. scan · parse · track · analyze.
 
 <!-- dashboard-start -->
-<table>
+<table width="100%">
 <tr valign="top">
 
 <td width="65%">
