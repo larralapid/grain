@@ -7,40 +7,55 @@ grain is a local-first iOS receipt scanner that turns paper receipts into search
 <!-- dashboard-start -->
 <table>
 <tr valign="top">
-<td width="33%">
+<td width="34%">
 
-<b>Product</b><br />
+<b><code>NAV</code></b><br />
 |&thinsp;- <a href="#what-it-does">What it does</a><br />
+|&thinsp;- <a href="#stack">Stack</a><br />
+|&thinsp;- <a href="#run-locally">Run locally</a><br />
 |&thinsp;- <a href="#screens">Screens</a><br />
 |&thinsp;- <a href="#status">Status</a><br />
 
 <br />
 
-<b>Docs</b><br />
+<b><code>DOCS</code></b><br />
 |&thinsp;- <a href="docs/Current-State.md">Current state</a><br />
 |&thinsp;- <a href="docs/Redesign-Spec.md">Redesign spec</a><br />
 |&thinsp;- <a href="docs/adr/README.md#index">ADRs</a><br />
 |&thinsp;- <a href="CHANGELOG.md">Changelog</a><br />
 
-<br />
-
-<b>Build</b><br />
-|&thinsp;- <a href="#run-locally">Run locally</a><br />
-|&thinsp;- <a href="#stack">Stack</a><br />
-|&thinsp;- <a href="https://github.com/larralapid/grain/actions/workflows/build.yml">CI</a><br />
-
 </td>
 <td width="33%" align="center">
-  <a href="screenshots/01-home.png">
-    <img src="screenshots/01-home.png" alt="Home — receipt list with monthly summary" width="125" />
-    <br /><b>Home</b>
-  </a>
+  <a href="#what-it-does"><b><code>PRODUCT</code></b></a><br />
+  Scan receipts<br />
+  Track spending<br />
+  Watch prices
 </td>
 <td width="33%" align="center">
-  <a href="screenshots/03-scan.png">
-    <img src="screenshots/03-scan.png" alt="Scan — camera viewfinder with alignment guide" width="125" />
-    <br /><b>Scan</b>
-  </a>
+  <a href="docs/Current-State.md"><b><code>STATE</code></b></a><br />
+  POC core working<br />
+  MVP gaps tracked<br />
+  Next steps documented
+</td>
+</tr>
+<tr>
+<td align="center">
+  <a href="#run-locally"><b><code>BUILD</code></b></a><br />
+  SwiftUI<br />
+  SwiftData<br />
+  Vision
+</td>
+<td align="center">
+  <a href="#screens"><b><code>SCREENS</code></b></a><br />
+  Home<br />
+  Scan<br />
+  Analytics
+</td>
+<td align="center">
+  <a href="docs/adr/README.md#index"><b><code>ARCH</code></b></a><br />
+  ADRs<br />
+  Local-only storage<br />
+  Apple frameworks only
 </td>
 </tr>
 </table>
