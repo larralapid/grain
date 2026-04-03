@@ -2,11 +2,12 @@
 
 [![Build](https://github.com/larralapid/grain/actions/workflows/build.yml/badge.svg)](https://github.com/larralapid/grain/actions/workflows/build.yml)
 
-grain is a native iOS receipt scanner and expense tracker that turns paper receipts into searchable, product-level spending data. It scans receipts with on-device OCR, tracks spend by store, brand, category, and product, and surfaces price history across purchases.
+grain is a local-first iOS receipt scanner that turns paper receipts into searchable, product-level spending data.
 
 <!-- dashboard-start -->
-<table><tr valign="top">
-<td width="34%">
+<table>
+<tr valign="top">
+<td width="33%">
 
 <b>Product</b><br />
 |&thinsp;- <a href="#what-it-does">What it does</a><br />
@@ -29,27 +30,20 @@ grain is a native iOS receipt scanner and expense tracker that turns paper recei
 |&thinsp;- <a href="https://github.com/larralapid/grain/actions/workflows/build.yml">CI</a><br />
 
 </td>
-<td width="66%">
-
-<table>
-<tr align="center">
-<td>
+<td width="33%" align="center">
   <a href="screenshots/01-home.png">
-    <img src="screenshots/01-home.png" alt="Home — receipt list with monthly summary" width="180" />
+    <img src="screenshots/01-home.png" alt="Home — receipt list with monthly summary" width="125" />
     <br /><b>Home</b>
   </a>
 </td>
-<td>
+<td width="33%" align="center">
   <a href="screenshots/03-scan.png">
-    <img src="screenshots/03-scan.png" alt="Scan — camera viewfinder with alignment guide" width="180" />
+    <img src="screenshots/03-scan.png" alt="Scan — camera viewfinder with alignment guide" width="125" />
     <br /><b>Scan</b>
   </a>
 </td>
 </tr>
 </table>
-
-</td>
-</tr></table>
 <!-- dashboard-end -->
 
 ***
