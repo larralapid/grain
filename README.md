@@ -13,6 +13,35 @@ grain — local-first iOS receipt scanner. scan · parse · track · analyze.
 <table width="100%">
 <tr valign="top">
 
+<td width="35%" align="center">
+
+<table width="100%"><tr><td bgcolor="000000" align="center"><b><samp><font color="white">g&thinsp;r&thinsp;a&thinsp;i&thinsp;n</font></samp></b></td></tr></table>
+
+<br />
+
+<img src="screenshots/09-launch-screen.gif" width="140" alt="grain launch screen" />
+
+<br /><br />
+
+[![Build](https://github.com/larralapid/grain/actions/workflows/build.yml/badge.svg)](https://github.com/larralapid/grain/actions/workflows/build.yml)<br />
+![iOS 17+](https://img.shields.io/badge/iOS-17%2B-000000?style=flat-square&logo=apple&logoColor=white)<br />
+![Swift](https://img.shields.io/badge/Swift-5.9-F05138?style=flat-square&logo=swift&logoColor=white)<br />
+![License](https://img.shields.io/badge/license-proprietary-333333?style=flat-square)<br />
+
+<br />
+
+<details>
+<summary><sup>v0.1.0 · poc</sup></summary>
+<br />
+<samp>
+scan → ocr → parse<br />
+save → browse → analyze<br />
+local-only · no cloud<br />
+</samp>
+</details>
+
+</td>
+
 <td width="65%">
 
 <table width="100%">
@@ -61,35 +90,6 @@ grain — local-first iOS receipt scanner. scan · parse · track · analyze.
 </tr>
 
 </table>
-
-</td>
-
-<td width="35%" align="center">
-
-<table width="100%"><tr><td bgcolor="000000" align="center"><b><samp><font color="white">g&thinsp;r&thinsp;a&thinsp;i&thinsp;n</font></samp></b></td></tr></table>
-
-<br />
-
-<img src="screenshots/09-launch-screen.gif" width="140" alt="grain launch screen" />
-
-<br /><br />
-
-[![Build](https://github.com/larralapid/grain/actions/workflows/build.yml/badge.svg)](https://github.com/larralapid/grain/actions/workflows/build.yml)<br />
-![iOS 17+](https://img.shields.io/badge/iOS-17%2B-000000?style=flat-square&logo=apple&logoColor=white)<br />
-![Swift](https://img.shields.io/badge/Swift-5.9-F05138?style=flat-square&logo=swift&logoColor=white)<br />
-![License](https://img.shields.io/badge/license-proprietary-333333?style=flat-square)<br />
-
-<br />
-
-<details>
-<summary><sup>v0.1.0 · poc</sup></summary>
-<br />
-<samp>
-scan → ocr → parse<br />
-save → browse → analyze<br />
-local-only · no cloud<br />
-</samp>
-</details>
 
 </td>
 
