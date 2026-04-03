@@ -7,61 +7,110 @@
 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
 ```
 
-grain is a local-first iOS receipt scanner that turns paper receipts into searchable, product-level spending data.
+grain — local-first iOS receipt scanner. scan · parse · track · analyze.
 
 <!-- dashboard-start -->
 <table>
 <tr valign="top">
-<td width="34%">
 
-<b><code>NAV</code></b><br />
-|&thinsp;- <a href="#what-it-does">What it does</a><br />
-|&thinsp;- <a href="#stack">Stack</a><br />
-|&thinsp;- <a href="#run-locally">Run locally</a><br />
-|&thinsp;- <a href="#screens">Screens</a><br />
-|&thinsp;- <a href="#status">Status</a><br />
+<td width="28%">
+
+<table width="100%"><tr><td bgcolor="000000"><b><samp><font color="white">N&thinsp;A&thinsp;V</font></samp></b></td></tr></table>
+
+|&thinsp;- <a href="#what-it-does">what it does</a><br />
+|&thinsp;- <a href="#stack">stack</a><br />
+|&thinsp;- <a href="#run-locally">run locally</a><br />
+|&thinsp;- <a href="#status">status</a><br />
 
 <br />
 
-<b><code>DOCS</code></b><br />
-|&thinsp;- <a href="docs/Current-State.md">Current state</a><br />
-|&thinsp;- <a href="docs/Redesign-Spec.md">Redesign spec</a><br />
+<table width="100%"><tr><td bgcolor="000000"><b><samp><font color="white">D&thinsp;O&thinsp;C&thinsp;S</font></samp></b></td></tr></table>
+
+|&thinsp;- <a href="docs/Current-State.md">current state</a><br />
+|&thinsp;- <a href="docs/Redesign-Spec.md">redesign spec</a><br />
 |&thinsp;- <a href="docs/adr/README.md#index">ADRs</a><br />
-|&thinsp;- <a href="CHANGELOG.md">Changelog</a><br />
+|&thinsp;- <a href="CHANGELOG.md">changelog</a><br />
+
+<br />
+
+<table width="100%"><tr><td bgcolor="000000"><b><samp><font color="white">S&thinsp;T&thinsp;A&thinsp;C&thinsp;K</font></samp></b></td></tr></table>
+
+SwiftUI · SwiftData<br />
+Apple Vision OCR<br />
+Swift Charts<br />
+iOS&thinsp;17+ · local-only<br />
 
 </td>
-<td width="33%" align="center">
-  <a href="#what-it-does"><b><code>PRODUCT</code></b></a><br />
-  Scan receipts<br />
-  Track spending<br />
-  Watch prices
+
+<td width="44%">
+
+<table align="center">
+<tr><td colspan="2" bgcolor="000000" align="center"><b><samp><font color="white">S&thinsp;C&thinsp;R&thinsp;E&thinsp;E&thinsp;N&thinsp;S</font></samp></b></td></tr>
+<tr>
+<td align="center">
+<a href="#what-it-does"><img src=".github/assets/tiles/03-scan.png" width="180" alt="scan" /><br /><sup>scan</sup></a>
 </td>
-<td width="33%" align="center">
-  <a href="docs/Current-State.md"><b><code>STATE</code></b></a><br />
-  POC core working<br />
-  MVP gaps tracked<br />
-  Next steps documented
+<td align="center">
+<a href="#what-it-does"><img src=".github/assets/tiles/04-proof.png" width="180" alt="proof" /><br /><sup>proof</sup></a>
 </td>
 </tr>
 <tr>
 <td align="center">
-  <a href="#run-locally"><b><code>BUILD</code></b></a><br />
-  SwiftUI<br />
-  SwiftData<br />
-  Vision
+<a href="#what-it-does"><img src=".github/assets/tiles/01-home.png" width="180" alt="receipts" /><br /><sup>receipts</sup></a>
 </td>
 <td align="center">
-  <a href="#screens"><b><code>SCREENS</code></b></a><br />
-  Home<br />
-  Scan<br />
-  Analytics
+<a href="#what-it-does"><img src=".github/assets/tiles/02-detail.png" width="180" alt="detail" /><br /><sup>detail</sup></a>
+</td>
+</tr>
+<tr>
+<td align="center">
+<a href="#what-it-does"><img src=".github/assets/tiles/05-analytics.png" width="180" alt="analytics" /><br /><sup>analytics</sup></a>
 </td>
 <td align="center">
-  <a href="docs/adr/README.md#index"><b><code>ARCH</code></b></a><br />
-  ADRs<br />
-  Local-only storage<br />
-  Apple frameworks only
+<a href="#what-it-does"><img src=".github/assets/tiles/06-itemwatch.png" width="180" alt="item watch" /><br /><sup>item watch</sup></a>
 </td>
+</tr>
+<tr>
+<td align="center">
+<a href="#what-it-does"><img src=".github/assets/tiles/07-index.png" width="180" alt="index" /><br /><sup>index</sup></a>
+</td>
+<td align="center">
+<a href="#what-it-does"><img src=".github/assets/tiles/08-retailers.png" width="180" alt="retailers" /><br /><sup>retailers</sup></a>
+</td>
+</tr>
+</table>
+
+</td>
+
+<td width="28%" align="center">
+
+<table width="100%"><tr><td bgcolor="000000" align="center"><b><samp><font color="white">g&thinsp;r&thinsp;a&thinsp;i&thinsp;n</font></samp></b></td></tr></table>
+
+<br />
+
+<img src="screenshots/09-launch-screen.gif" width="140" alt="grain launch screen" />
+
+<br /><br />
+
+[![Build](https://github.com/larralapid/grain/actions/workflows/build.yml/badge.svg)](https://github.com/larralapid/grain/actions/workflows/build.yml)<br />
+![iOS 17+](https://img.shields.io/badge/iOS-17%2B-000000?style=flat-square&logo=apple&logoColor=white)<br />
+![Swift](https://img.shields.io/badge/Swift-5.9-F05138?style=flat-square&logo=swift&logoColor=white)<br />
+![License](https://img.shields.io/badge/license-proprietary-333333?style=flat-square)<br />
+
+<br />
+
+<details>
+<summary><sup>v0.1.0 · poc</sup></summary>
+<br />
+<samp>
+scan → ocr → parse<br />
+save → browse → analyze<br />
+local-only · no cloud<br />
+</samp>
+</details>
+
+</td>
+
 </tr>
 </table>
 <!-- dashboard-end -->
@@ -74,7 +123,7 @@ grain is a local-first iOS receipt scanner that turns paper receipts into search
 - **Track spending** — view totals and breakdowns by category, merchant, and brand.
 - **Watch prices** — see item-level price history across purchases.
 - **Index entities** — browse products, brands, and retailers pulled from receipt data.
-- **Stay local-first** — keep storage and processing on device.
+- **Stay local-first** — all storage and processing on device. No cloud, no accounts.
 
 ## Stack
 
@@ -99,24 +148,11 @@ open grain.xcodeproj
 
 Build the `grain` target in Xcode and run on an iOS 17+ simulator or device.
 
-## Screens
-
-| # | Screen | Description |
-|---|---|---|
-| 01 | [Home](screenshots/01-home.png) | Receipt list with monthly spend summary |
-| 02 | [Detail](screenshots/02-detail.png) | Receipt breakdown: items, brands, totals |
-| 03 | [Scan](screenshots/03-scan.png) | Camera viewfinder with alignment guide |
-| 04 | [Proof](screenshots/04-proof.png) | Thermal receipt preview after OCR |
-| 05 | [Spending](screenshots/05-analytics.png) | Category and store charts |
-| 06 | [Item Watch](screenshots/06-itemwatch.png) | Product price tracking |
-| 07 | [Index](screenshots/07-index.png) | Product catalog |
-| 08 | [Retailers](screenshots/08-retailers.png) | Retailer directory by spend |
-
 ## Status
 
-Proof of concept.
+Proof of concept. The core loop exists: scan, OCR, parse, save, browse, and analyze.
 
-The core loop exists: scan, OCR, parse, save, browse, and analyze. The biggest gaps to close for MVP are manual receipt entry, full edit flow from scan proof, receipt image persistence, stronger parser reliability, and better user-facing error states.
+Biggest gaps to close for MVP: manual receipt entry, full edit flow from scan proof, receipt image persistence, stronger parser reliability, and better user-facing error states.
 
 See [docs/Current-State.md](docs/Current-State.md) for the full assessment and MVP delta.
 
