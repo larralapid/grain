@@ -1,70 +1,141 @@
-# grain
+# GRAIN
 
 [![Build](https://github.com/larralapid/grain/actions/workflows/build.yml/badge.svg)](https://github.com/larralapid/grain/actions/workflows/build.yml)
 
-Grain is a comprehensive iOS app that scans receipts and tracks expenses down to the most granular level. Track your products, brands, and spending patterns with powerful analytics and insights.
+```
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+  GRAIN  ·  receipt scanner + expense tracker for iOS
+  on-device OCR  ·  zero dependencies  ·  local-only storage
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+```
 
-Receipt scanner and expense tracker for iOS. Scans paper receipts with on-device OCR, tracks spending at the product and brand level, and shows you where your money actually goes.
+---
 
-<p align="center">
-  <img src="screenshots/01-home.png" width="180" />
-  <img src="screenshots/02-detail.png" width="180" />
-  <img src="screenshots/03-scan.png" width="180" />
-  <img src="screenshots/05-analytics.png" width="180" />
-</p>
-
-## What it does
-
-- **Scan receipts** — photograph a paper receipt and extract merchant, items, prices, tax via Vision framework OCR. All processing on-device.
-- **Track spending** — monthly totals, category breakdowns (groceries, home, health, dining, transport), and store-level spend.
-- **Watch item prices** — see price history and trends for individual products across purchases.
-- **Index everything** — browse all products, brands, and retailers extracted from your receipts.
-
-## Stack
-
-| Layer | Tech |
-|-------|------|
-| UI | SwiftUI, monospace brutalist design system (`GrainTheme`) |
-| Data | SwiftData (7 model types) |
-| OCR | Apple Vision framework |
-| Charts | Swift Charts |
-| Storage | Local-only, on-device |
-| Dependencies | Zero — Apple frameworks only |
-
-iOS 17.0+ &middot; Swift 5.9+ &middot; Xcode 15+
-
-## Run
+## ◈ WHAT IT DOES
 
 ```
+┌──────────────────────────────────────────────────────────────┐
+│  SCAN      photograph a receipt → extract merchant,          │
+│            items, prices, tax via Vision OCR.                │
+│            all processing on-device.                         │
+├──────────────────────────────────────────────────────────────┤
+│  TRACK     monthly totals, category breakdowns               │
+│            (groceries · home · health · dining · transport)  │
+│            and store-level spend.                            │
+├──────────────────────────────────────────────────────────────┤
+│  WATCH     price history and trends for individual           │
+│            products across every purchase.                   │
+├──────────────────────────────────────────────────────────────┤
+│  INDEX     browse all products, brands, and retailers        │
+│            extracted from your receipts.                     │
+└──────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## ◈ STACK
+
+| LAYER        | TECH                                          |
+|--------------|-----------------------------------------------|
+| UI           | SwiftUI · monospace brutalist (`GrainTheme`)  |
+| DATA         | SwiftData — 7 model types                     |
+| OCR          | Apple Vision framework                        |
+| CHARTS       | Swift Charts                                  |
+| STORAGE      | Local-only · on-device                        |
+| DEPENDENCIES | Zero — Apple frameworks only                  |
+
+`iOS 17.0+` · `Swift 5.9+` · `Xcode 15+`
+
+---
+
+## ◈ SCREENS
+
+```
+┌─────────────────────────┐   ┌─────────────────────────┐
+│  HOME                   │   │  DETAIL                 │
+│  ─────────────────────  │   │  ─────────────────────  │
+│  March 2026             │   │  Corner Market          │
+│                         │   │  Mar 22, 2026           │
+│         $482.14         │   │                         │
+│                         │   │  Oat Milk         $4.79 │
+│  RECENT                 │   │  Paper Towels     $8.29 │
+│  ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄  │   │  Olive Oil       $12.49 │
+│  Corner Market  $42.90  │   │  ────────────────────── │
+│  CVS Pharmacy   $18.12  │   │  SUBTOTAL        $25.57 │
+│  Whole Foods    $67.34  │   │  TAX              $2.05 │
+│                         │   │  TOTAL           $27.62 │
+│  receipts  scan  index  │   │                         │
+└─────────────────────────┘   └─────────────────────────┘
+
+┌─────────────────────────┐   ┌─────────────────────────┐
+│  SCAN                   │   │  ANALYTICS              │
+│  ─────────────────────  │   │  ─────────────────────  │
+│                         │   │  $482.14                │
+│   ┌───────────────────┐ │   │  this month             │
+│   │                   │ │   │                         │
+│   │   [ receipt  ]    │ │   │  groceries  ████░  72%  │
+│   │                   │ │   │  health     ██░░░  11%  │
+│   └───────────────────┘ │   │  home       █░░░░   9%  │
+│                         │   │  dining     █░░░░   8%  │
+│         [ SCAN ]        │   │                         │
+│                         │   │  PRICE WATCH            │
+│                         │   │  Oat Milk    avg $4.50↑ │
+└─────────────────────────┘   └─────────────────────────┘
+```
+
+| #  | SCREEN                                          | DESCRIPTION                                     |
+|----|------------------------------------------------|--------------------------------------------------|
+| 01 | [Home](screenshots/01-home.png)                | Receipt list with monthly spending summary       |
+| 02 | [Detail](screenshots/02-detail.png)            | Receipt breakdown: items, brands, totals         |
+| 03 | [Scan](screenshots/03-scan.png)                | Camera viewfinder with alignment guide           |
+| 04 | [Proof](screenshots/04-proof.png)              | Thermal receipt preview after OCR                |
+| 05 | [Spending](screenshots/05-analytics.png)       | Category and store spending charts               |
+| 06 | [Item Watch](screenshots/06-itemwatch.png)     | Price tracking across purchases                  |
+| 07 | [Index](screenshots/07-index.png)              | Product catalog with average prices              |
+| 08 | [Retailers](screenshots/08-retailers.png)      | Retailer directory by total spend                |
+
+---
+
+## ◈ RUN
+
+```sh
 open grain.xcodeproj
 ```
 
 Build target `grain`, run on simulator or device.
 
-## Screens
+---
 
-| # | Screen | Description |
-|---|--------|-------------|
-| 01 | [Home](screenshots/01-home.png) | Receipt list with monthly spending summary |
-| 02 | [Detail](screenshots/02-detail.png) | Receipt breakdown: items, brands, totals |
-| 03 | [Scan](screenshots/03-scan.png) | Camera viewfinder with alignment guide |
-| 04 | [Proof](screenshots/04-proof.png) | Thermal receipt preview after OCR |
-| 05 | [Spending](screenshots/05-analytics.png) | Category and store spending charts |
-| 06 | [Item Watch](screenshots/06-itemwatch.png) | Price tracking across purchases |
-| 07 | [Index](screenshots/07-index.png) | Product catalog with average prices |
-| 08 | [Retailers](screenshots/08-retailers.png) | Retailer directory by total spend |
+## ◈ DOCS
 
-## Docs
+```
+┌──────────────────────────────────────────────────────────────┐
+│  docs/Current-State.md      architecture audit               │
+│  docs/Redesign-Spec.md      design system + wireframes       │
+│  docs/adr/README.md         architecture decision records    │
+│  CHANGELOG.md               release history                  │
+└──────────────────────────────────────────────────────────────┘
+```
 
-- [Current State](docs/Current-State.md) — architecture audit
-- [Redesign Spec](docs/Redesign-Spec.md) — design system and wireframes
-- [Architecture Decisions](docs/adr/README.md) — ADR index
+- [Current State](docs/Current-State.md)
+- [Redesign Spec](docs/Redesign-Spec.md)
+- [Architecture Decisions](docs/adr/README.md)
 - [Changelog](CHANGELOG.md)
 
-## Status
+---
 
-Proof-of-concept. Core scanning and display flow works. See [Current State](docs/Current-State.md) for known tech debt and next steps.
+## ◈ STATUS
 
-## License
+```
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+  PROOF-OF-CONCEPT
+  core scan + display flow: working
+  tech debt + next steps: docs/Current-State.md
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+```
+
+---
+
+## ◈ LICENSE
 
 All rights reserved. See [LICENSE](LICENSE).
