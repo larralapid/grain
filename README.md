@@ -2,68 +2,47 @@
 
 [![Build](https://github.com/larralapid/grain/actions/workflows/build.yml/badge.svg)](https://github.com/larralapid/grain/actions/workflows/build.yml)
 
-**who gets paid when you buy things.**
-
 grain is a native iOS receipt scanner and expense tracker that turns paper receipts into searchable, product-level spending data. It scans receipts with on-device OCR, tracks spend by store, brand, category, and product, and surfaces price history across purchases.
 
 <!-- dashboard-start -->
 <table><tr valign="top">
-<td width="38%">
+<td width="34%">
 
-<details><summary><ins><b>P&thinsp;r&thinsp;o&thinsp;d&thinsp;u&thinsp;c&thinsp;t&thinsp;&amp;&thinsp;F&thinsp;l&thinsp;o&thinsp;w&thinsp;s</b></ins></summary>
-
-|&thinsp;-&thinsp; <a href="screenshots/01-home.png">Receipt&thinsp;home</a><br />
-|&thinsp;-&thinsp; <a href="screenshots/04-proof.png">Scan&thinsp;proof</a><br />
-|&thinsp;-&thinsp; <a href="screenshots/05-analytics.png">Analytics</a><br />
-|&thinsp;-&thinsp; <a href="screenshots/07-index.png">Product&thinsp;index</a><br />
-
-</details>
-
-<details><summary><ins><b>D&thinsp;o&thinsp;c&thinsp;s&thinsp;&amp;&thinsp;A&thinsp;r&thinsp;c&thinsp;h</b></ins></summary>
-
-|&thinsp;-&thinsp; <a href="docs/Current-State.md">Current&thinsp;state</a><br />
-|&thinsp;-&thinsp; <a href="docs/Redesign-Spec.md">Redesign&thinsp;spec</a><br />
-|&thinsp;-&thinsp; <a href="docs/adr/README.md#index">ADRs</a><br />
-|&thinsp;-&thinsp; <a href="CHANGELOG.md">Changelog</a><br />
-
-</details>
-
-◾ <b><samp>B&thinsp;u&thinsp;i&thinsp;l&thinsp;d&thinsp;&amp;&thinsp;Q&thinsp;u&thinsp;a&thinsp;l&thinsp;i&thinsp;t&thinsp;y</samp></b><br />
-|&thinsp;- <a href="#run-locally">Run&thinsp;locally</a><br />
-|&thinsp;- <a href="https://github.com/larralapid/grain/actions/workflows/build.yml">CI&thinsp;workflow</a><br />
-|&thinsp;- <a href="#stack">Stack</a><br />
+<b>Product</b><br />
+|&thinsp;- <a href="#what-it-does">What it does</a><br />
+|&thinsp;- <a href="#screens">Screens</a><br />
 |&thinsp;- <a href="#status">Status</a><br />
 
+<br />
+
+<b>Docs</b><br />
+|&thinsp;- <a href="docs/Current-State.md">Current state</a><br />
+|&thinsp;- <a href="docs/Redesign-Spec.md">Redesign spec</a><br />
+|&thinsp;- <a href="docs/adr/README.md#index">ADRs</a><br />
+|&thinsp;- <a href="CHANGELOG.md">Changelog</a><br />
+
+<br />
+
+<b>Build</b><br />
+|&thinsp;- <a href="#run-locally">Run locally</a><br />
+|&thinsp;- <a href="#stack">Stack</a><br />
+|&thinsp;- <a href="https://github.com/larralapid/grain/actions/workflows/build.yml">CI</a><br />
+
 </td>
-<td width="62%">
+<td width="66%">
 
 <table>
 <tr align="center">
 <td>
   <a href="screenshots/01-home.png">
-    <img src="screenshots/01-home.png" alt="Home — receipt list with monthly summary" width="200" />
-    <br /><b>H&thinsp;O&thinsp;M&thinsp;E</b>
+    <img src="screenshots/01-home.png" alt="Home — receipt list with monthly summary" width="180" />
+    <br /><b>Home</b>
   </a>
 </td>
 <td>
   <a href="screenshots/03-scan.png">
-    <img src="screenshots/03-scan.png" alt="Scan — camera viewfinder with alignment guide" width="200" />
-    <br /><b>S&thinsp;C&thinsp;A&thinsp;N</b>
-  </a>
-</td>
-</tr>
-<tr></tr>
-<tr align="center">
-<td>
-  <a href="screenshots/05-analytics.png">
-    <img src="screenshots/05-analytics.png" alt="Analytics — category and store spending charts" width="200" />
-    <br /><b>A&thinsp;N&thinsp;A&thinsp;L&thinsp;Y&thinsp;T&thinsp;I&thinsp;C&thinsp;S</b>
-  </a>
-</td>
-<td>
-  <a href="screenshots/07-index.png">
-    <img src="screenshots/07-index.png" alt="Index — product catalog with average prices" width="200" />
-    <br /><b>I&thinsp;N&thinsp;D&thinsp;E&thinsp;X</b>
+    <img src="screenshots/03-scan.png" alt="Scan — camera viewfinder with alignment guide" width="180" />
+    <br /><b>Scan</b>
   </a>
 </td>
 </tr>
