@@ -27,7 +27,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - Tax Categories configuration
 - Deduction Rules configuration
 - Unit tests for `AnalyticsService`
-- Enable CloudKit sync (see [ADR-0005](docs/adr/ADR-0005-local-only-storage.md))
+- Enable CloudKit sync (see [ADR-0005](docs/adr/0005-local-only-storage.md))
 
 ---
 
@@ -44,11 +44,11 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - **CloudKit entitlement** — present in project, not yet active
 
 ### Architecture decisions (see [docs/adr/](docs/adr/README.md))
-- SwiftUI + SwiftData on iOS 17+ ([ADR-0001](docs/adr/ADR-0001-swiftui-swiftdata.md))
-- Apple Vision framework for on-device OCR ([ADR-0002](docs/adr/ADR-0002-vision-framework-ocr.md))
-- Zero external dependencies ([ADR-0003](docs/adr/ADR-0003-zero-external-dependencies.md))
-- Swift Charts for analytics ([ADR-0004](docs/adr/ADR-0004-swift-charts.md))
-- Local-only storage; CloudKit deferred ([ADR-0005](docs/adr/ADR-0005-local-only-storage.md))
+- SwiftUI + SwiftData on iOS 17+ ([ADR-0001](docs/adr/0001-swiftui-swiftdata.md))
+- Apple Vision framework for on-device OCR ([ADR-0002](docs/adr/0002-vision-framework-ocr.md))
+- Zero external dependencies ([ADR-0003](docs/adr/0003-zero-external-dependencies.md))
+- Swift Charts for analytics ([ADR-0004](docs/adr/0004-swift-charts.md))
+- Local-only storage; CloudKit deferred ([ADR-0005](docs/adr/0005-local-only-storage.md))
 
 ### Known issues
 - OCR parser (`ReceiptScannerService`) is a proof-of-concept regex approach; accuracy on real-world receipts is limited
