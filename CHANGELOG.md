@@ -12,6 +12,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ### Added
 - Notifications-based launch screen for returning users with recent activity cards and a fast handoff into the main app
 - GitHub Actions Build workflow (`build.yml`) that runs iOS simulator build and tests on pushes and pull requests to `main`
+- Product and retailer market-trend drill-down views with forecasting and cross-analysis comparisons in the index tab
 
 <p>
   <img src="screenshots/09-launch-screen.gif" alt="Notifications launch screen preview" width="280" />

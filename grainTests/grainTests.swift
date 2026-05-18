@@ -7,6 +7,7 @@
 
 import Testing
 import Foundation
+import SwiftData
 @testable import grain
 
 // MARK: - Receipt Model Tests
@@ -313,6 +314,68 @@ struct SpendingAnalyticsTests {
     @Test func allAnalyticsPeriodCases() async throws {
         let allCases = AnalyticsPeriod.allCases
         #expect(allCases.count == 5)
+    }
+}
+
+// MARK: - Market Trend Analytics Tests
+
+struct MarketTrendAnalyticsTests {
+
+    @Test func productTrendReportIncludesForecastAndCrossAnalysis() async throws {
+        let container = try ModelContainer(for: Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+
+        let janReceipt = Receipt(date: Date(timeIntervalSince1970: 1736899200), merchantName: "Trader Joe's", total: 12, subtotal: 11, tax: 1)
+        let febReceipt = Receipt(date: Date(timeIntervalSince1970: 1739577600), merchantName: "Safeway", total: 14, subtotal: 13, tax: 1)
+        let marReceipt = Receipt(date: Date(timeIntervalSince1970: 1741996800), merchantName: "Trader Joe's", total: 16, subtotal: 15, tax: 1)
+
+        let janMilk = ReceiptItem(name: "Milk", category: "Dairy", quantity: 1, unitPrice: 4, totalPrice: 4)
+        let febMilk = ReceiptItem(name: "Milk", category: "Dairy", quantity: 1, unitPrice: 5, totalPrice: 5)
+        let marMilk = ReceiptItem(name: "Milk", category: "Dairy", quantity: 1, unitPrice: 6, totalPrice: 6)
+
+        janReceipt.items.append(janMilk)
+        febReceipt.items.append(febMilk)
+        marReceipt.items.append(marMilk)
+
+        context.insert(janReceipt)
+        context.insert(febReceipt)
+        context.insert(marReceipt)
+        try context.save()
+
+        let service = AnalyticsService(modelContext: context)
+        let report = await service.getProductTrendReport(for: "Milk", category: "Dairy")
+
+        #expect(report.monthlyTrends.count == 3)
+        #expect(report.forecastAveragePrice != nil)
+        #expect(report.forecastTotalSpend != nil)
+        #expect(report.retailerComparison.count == 2)
+        #expect(report.categoryComparison != nil)
+    }
+
+    @Test func retailerTrendReportIncludesForecastAndProductComparison() async throws {
+        let container = try ModelContainer(for: Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+
+        let retailerReceiptA = Receipt(date: Date(timeIntervalSince1970: 1736899200), merchantName: "Trader Joe's", total: 20, subtotal: 18, tax: 2)
+        let retailerReceiptB = Receipt(date: Date(timeIntervalSince1970: 1739577600), merchantName: "Trader Joe's", total: 24, subtotal: 22, tax: 2)
+        let marketReceipt = Receipt(date: Date(timeIntervalSince1970: 1741996800), merchantName: "Whole Foods", total: 18, subtotal: 16, tax: 2)
+
+        retailerReceiptA.items.append(ReceiptItem(name: "Milk", category: "Dairy", quantity: 1, unitPrice: 4, totalPrice: 4))
+        retailerReceiptA.items.append(ReceiptItem(name: "Eggs", category: "Dairy", quantity: 1, unitPrice: 5, totalPrice: 5))
+        retailerReceiptB.items.append(ReceiptItem(name: "Milk", category: "Dairy", quantity: 1, unitPrice: 6, totalPrice: 6))
+        marketReceipt.items.append(ReceiptItem(name: "Milk", category: "Dairy", quantity: 1, unitPrice: 7, totalPrice: 7))
+
+        context.insert(retailerReceiptA)
+        context.insert(retailerReceiptB)
+        context.insert(marketReceipt)
+        try context.save()
+
+        let service = AnalyticsService(modelContext: context)
+        let report = await service.getRetailerTrendReport(for: "Trader Joe's")
+
+        #expect(report.monthlyTrends.count == 2)
+        #expect(report.forecastTotalSpend != nil)
+        #expect(report.productComparisons.contains(where: { $0.productName == "Milk" }))
     }
 }
 
