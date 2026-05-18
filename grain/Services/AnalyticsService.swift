@@ -189,11 +189,9 @@ class AnalyticsService: ObservableObject {
 
             let retailerComparison = Dictionary(grouping: items, by: { $0.receipt?.merchantName ?? "Unknown" })
                 .map { retailer, retailerItems in
-                    let total = retailerItems.reduce(Decimal(0)) { $0 + $1.totalPrice }
-                    let averagePrice = retailerItems.isEmpty ? Decimal(0) : total / Decimal(retailerItems.count)
                     return RetailerPriceComparison(
                         retailer: retailer,
-                        averagePrice: averagePrice,
+                        averagePrice: averagePrice(for: retailerItems),
                         purchaseCount: retailerItems.count
                     )
                 }
@@ -206,12 +204,8 @@ class AnalyticsService: ObservableObject {
                 }
                 let categoryDescriptor = FetchDescriptor<ReceiptItem>(predicate: categoryPredicate)
                 let categoryItems = try modelContext.fetch(categoryDescriptor)
-                let categoryAverage = categoryItems.isEmpty
-                    ? Decimal(0)
-                    : categoryItems.reduce(Decimal(0)) { $0 + $1.totalPrice } / Decimal(categoryItems.count)
-                let productAverage = items.isEmpty
-                    ? Decimal(0)
-                    : items.reduce(Decimal(0)) { $0 + $1.totalPrice } / Decimal(items.count)
+                let categoryAverage = averagePrice(for: categoryItems)
+                let productAverage = averagePrice(for: items)
 
                 categoryComparison = ProductCategoryComparison(
                     categoryName: category,
@@ -349,7 +343,8 @@ class AnalyticsService: ObservableObject {
         let sumX2 = points.reduce(0.0) { $0 + ($1.x * $1.x) }
 
         let denominator = (count * sumX2) - (sumX * sumX)
-        guard denominator != 0 else { return nil }
+        let denominatorThreshold = 1e-10
+        guard abs(denominator) > denominatorThreshold else { return nil }
 
         let slope = ((count * sumXY) - (sumX * sumY)) / denominator
         let intercept = (sumY - slope * sumX) / count

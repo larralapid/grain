@@ -113,7 +113,7 @@ struct ProductsView: View {
                         NavigationLink {
                             ProductMarketTrendsView(
                                 product: item,
-                                analyticsService: AnalyticsService(modelContext: modelContext)
+                                modelContext: modelContext
                             )
                         } label: {
                             HStack(alignment: .firstTextBaseline) {
@@ -194,7 +194,7 @@ struct ProductsView: View {
                     NavigationLink {
                         RetailerMarketTrendsView(
                             retailerName: retailer.name,
-                            analyticsService: AnalyticsService(modelContext: modelContext)
+                            modelContext: modelContext
                         )
                     } label: {
                         indexCard(
@@ -285,83 +285,81 @@ struct ProductsView: View {
 
 struct ProductMarketTrendsView: View {
     let product: Product
-    let analyticsService: AnalyticsService
+    let modelContext: ModelContext
     @State private var report: ProductTrendReport?
 
     var body: some View {
-        ZStack {
-            GrainTheme.bg.ignoresSafeArea()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(product.name)
+                    .font(GrainTheme.mono(18))
+                    .foregroundColor(GrainTheme.textPrimary)
+                    .padding(.top, 8)
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(product.name)
-                        .font(GrainTheme.mono(18))
-                        .foregroundColor(GrainTheme.textPrimary)
-                        .padding(.top, 8)
+                if let brand = product.brand, !brand.isEmpty {
+                    Text(brand.lowercased())
+                        .font(GrainTheme.mono(11))
+                        .foregroundColor(GrainTheme.textSecondary)
+                        .padding(.top, 2)
+                }
 
-                    if let brand = product.brand, !brand.isEmpty {
-                        Text(brand.lowercased())
+                if let report {
+                    marketTrendSection(title: "MARKET TREND", points: report.monthlyTrends.map(\.averagePrice))
+                    marketForecastRow(
+                        label: "forecast next avg",
+                        value: report.forecastAveragePrice?.formatted(.currency(code: "USD")) ?? "insufficient data"
+                    )
+                    marketForecastRow(
+                        label: "forecast next spend",
+                        value: report.forecastTotalSpend?.formatted(.currency(code: "USD")) ?? "insufficient data"
+                    )
+
+                    MarketSectionDivider()
+                    marketSectionLabel("RETAILER CROSS ANALYSIS")
+                        .padding(.top, 20)
+                        .padding(.bottom, 8)
+
+                    if report.retailerComparison.isEmpty {
+                        Text("no retailer data yet")
                             .font(GrainTheme.mono(11))
                             .foregroundColor(GrainTheme.textSecondary)
-                            .padding(.top, 2)
+                    } else {
+                        ForEach(Array(report.retailerComparison.prefix(5)), id: \.retailer) { row in
+                            crossRow(
+                                title: row.retailer,
+                                subtitle: "\(row.purchaseCount) purchase\(row.purchaseCount == 1 ? "" : "s")",
+                                value: row.averagePrice.formatted(.currency(code: "USD"))
+                            )
+                        }
                     }
 
-                    if let report {
-                        trendSection(title: "MARKET TREND", points: report.monthlyTrends.map(\.averagePrice))
-                        forecastRow(
-                            label: "forecast next avg",
-                            value: report.forecastAveragePrice?.formatted(.currency(code: "USD")) ?? "insufficient data"
-                        )
-                        forecastRow(
-                            label: "forecast next spend",
-                            value: report.forecastTotalSpend?.formatted(.currency(code: "USD")) ?? "insufficient data"
-                        )
-
-                        sectionDivider
-                        sectionLabel("RETAILER CROSS ANALYSIS")
+                    if let categoryComparison = report.categoryComparison {
+                        MarketSectionDivider()
+                        marketSectionLabel("CATEGORY CROSS ANALYSIS")
                             .padding(.top, 20)
                             .padding(.bottom, 8)
 
-                        if report.retailerComparison.isEmpty {
-                            Text("no retailer data yet")
-                                .font(GrainTheme.mono(11))
-                                .foregroundColor(GrainTheme.textSecondary)
-                        } else {
-                            ForEach(Array(report.retailerComparison.prefix(5).enumerated()), id: \.offset) { _, row in
-                                crossRow(
-                                    title: row.retailer,
-                                    subtitle: "\(row.purchaseCount) purchase\(row.purchaseCount == 1 ? "" : "s")",
-                                    value: row.averagePrice.formatted(.currency(code: "USD"))
-                                )
-                            }
-                        }
-
-                        if let categoryComparison = report.categoryComparison {
-                            sectionDivider
-                            sectionLabel("CATEGORY CROSS ANALYSIS")
-                                .padding(.top, 20)
-                                .padding(.bottom, 8)
-
-                            crossRow(
-                                title: categoryComparison.categoryName.lowercased(),
-                                subtitle: "category avg \(categoryComparison.categoryAveragePrice.formatted(.currency(code: "USD")))",
-                                value: signedCurrency(categoryComparison.difference)
-                            )
-                        }
-                    } else {
-                        Text("loading trends...")
-                            .font(GrainTheme.mono(12))
-                            .foregroundColor(GrainTheme.textSecondary)
-                            .padding(.top, 24)
+                        crossRow(
+                            title: categoryComparison.categoryName.lowercased(),
+                            subtitle: "category avg \(categoryComparison.categoryAveragePrice.formatted(.currency(code: "USD")))",
+                            value: signedCurrency(categoryComparison.difference)
+                        )
                     }
+                } else {
+                    Text("loading trends...")
+                        .font(GrainTheme.mono(12))
+                        .foregroundColor(GrainTheme.textSecondary)
+                        .padding(.top, 24)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 40)
             }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 40)
         }
+        .grainScreen()
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             Task {
+                let analyticsService = AnalyticsService(modelContext: modelContext)
                 report = await analyticsService.getProductTrendReport(
                     for: product.name,
                     category: product.category
@@ -370,165 +368,113 @@ struct ProductMarketTrendsView: View {
         }
     }
 
-    private var sectionDivider: some View {
-        Rectangle()
-            .fill(GrainTheme.border)
-            .frame(height: 1)
-            .padding(.top, 20)
-    }
-
-    private func sectionLabel(_ text: String) -> some View {
-        Text(text)
-            .font(GrainTheme.mono(10))
-            .tracking(1)
-            .foregroundColor(GrainTheme.textSecondary)
-    }
-
-    private func trendSection(title: String, points: [Decimal]) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            sectionDivider
-            sectionLabel(title)
-                .padding(.top, 20)
-                .padding(.bottom, 10)
-
-            HStack(alignment: .bottom, spacing: 4) {
-                let maxValue = max(points.max() ?? 0, Decimal(1))
-                ForEach(Array(points.suffix(6).enumerated()), id: \.offset) { _, point in
-                    let ratio = CGFloat(truncating: (point / maxValue) as NSDecimalNumber)
-                    Rectangle()
-                        .fill(GrainTheme.accent)
-                        .frame(width: 12, height: max(4, ratio * 36))
-                }
-            }
-            .frame(height: 36, alignment: .bottom)
-        }
-    }
-
-    private func forecastRow(label: String, value: String) -> some View {
-        HStack {
-            Text(label)
-                .font(GrainTheme.mono(11))
-                .foregroundColor(GrainTheme.textSecondary)
-            Spacer()
-            Text(value)
-                .font(GrainTheme.mono(12))
-                .foregroundColor(GrainTheme.textPrimary)
-        }
-        .padding(.top, 10)
-    }
-
-    private func crossRow(title: String, subtitle: String, value: String) -> some View {
-        HStack(alignment: .firstTextBaseline) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(GrainTheme.mono(12))
-                    .foregroundColor(GrainTheme.textPrimary)
-                Text(subtitle)
-                    .font(GrainTheme.mono(10))
-                    .foregroundColor(GrainTheme.textSecondary)
-            }
-            Spacer()
-            Text(value)
-                .font(GrainTheme.mono(12))
-                .foregroundColor(GrainTheme.textPrimary)
-        }
-        .padding(.vertical, 10)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(GrainTheme.border)
-                .frame(height: 1)
-        }
-    }
-
-    private func signedCurrency(_ value: Decimal) -> String {
-        let sign = value > 0 ? "+" : ""
-        return "\(sign)\(value.formatted(.currency(code: "USD")))"
-    }
 }
 
 struct RetailerMarketTrendsView: View {
     let retailerName: String
-    let analyticsService: AnalyticsService
+    let modelContext: ModelContext
     @State private var report: RetailerTrendReport?
 
     var body: some View {
-        ZStack {
-            GrainTheme.bg.ignoresSafeArea()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(retailerName)
+                    .font(GrainTheme.mono(18))
+                    .foregroundColor(GrainTheme.textPrimary)
+                    .padding(.top, 8)
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(retailerName)
-                        .font(GrainTheme.mono(18))
-                        .foregroundColor(GrainTheme.textPrimary)
-                        .padding(.top, 8)
+                if let report {
+                    marketTrendSection(title: "MARKET TREND", points: report.monthlyTrends.map(\.totalSpend))
+                    marketForecastRow(
+                        label: "forecast next spend",
+                        value: report.forecastTotalSpend?.formatted(.currency(code: "USD")) ?? "insufficient data"
+                    )
 
-                    if let report {
-                        trendSection(points: report.monthlyTrends.map(\.totalSpend))
-                        forecastRow(
-                            label: "forecast next spend",
-                            value: report.forecastTotalSpend?.formatted(.currency(code: "USD")) ?? "insufficient data"
-                        )
+                    MarketSectionDivider()
+                    marketSectionLabel("PRODUCT CROSS ANALYSIS")
+                        .padding(.top, 20)
+                        .padding(.bottom, 8)
 
-                        sectionDivider
-                        sectionLabel("PRODUCT CROSS ANALYSIS")
-                            .padding(.top, 20)
-                            .padding(.bottom, 8)
-
-                        if report.productComparisons.isEmpty {
-                            Text("no product data yet")
-                                .font(GrainTheme.mono(11))
-                                .foregroundColor(GrainTheme.textSecondary)
-                        } else {
-                            ForEach(Array(report.productComparisons.prefix(5).enumerated()), id: \.offset) { _, row in
-                                crossRow(
-                                    title: row.productName,
-                                    subtitle: "market \(row.marketAveragePrice.formatted(.currency(code: "USD")))",
-                                    value: signedCurrency(row.difference)
-                                )
-                            }
-                        }
-                    } else {
-                        Text("loading trends...")
-                            .font(GrainTheme.mono(12))
+                    if report.productComparisons.isEmpty {
+                        Text("no product data yet")
+                            .font(GrainTheme.mono(11))
                             .foregroundColor(GrainTheme.textSecondary)
-                            .padding(.top, 24)
+                    } else {
+                        ForEach(Array(report.productComparisons.prefix(5)), id: \.productName) { row in
+                            crossRow(
+                                title: row.productName,
+                                subtitle: "market \(row.marketAveragePrice.formatted(.currency(code: "USD")))",
+                                value: signedCurrency(row.difference)
+                            )
+                        }
                     }
+                } else {
+                    Text("loading trends...")
+                        .font(GrainTheme.mono(12))
+                        .foregroundColor(GrainTheme.textSecondary)
+                        .padding(.top, 24)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 40)
             }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 40)
         }
+        .grainScreen()
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             Task {
+                let analyticsService = AnalyticsService(modelContext: modelContext)
                 report = await analyticsService.getRetailerTrendReport(for: retailerName)
             }
         }
     }
 
-    private var sectionDivider: some View {
+}
+
+private struct MarketSectionDivider: View {
+    var body: some View {
         Rectangle()
             .fill(GrainTheme.border)
             .frame(height: 1)
             .padding(.top, 20)
     }
+}
 
-    private func sectionLabel(_ text: String) -> some View {
-        Text(text)
-            .font(GrainTheme.mono(10))
-            .tracking(1)
+private func marketSectionLabel(_ text: String) -> some View {
+    Text(text)
+        .font(GrainTheme.mono(10))
+        .tracking(1)
+        .foregroundColor(GrainTheme.textSecondary)
+}
+
+private func marketForecastRow(label: String, value: String) -> some View {
+    HStack {
+        Text(label)
+            .font(GrainTheme.mono(11))
             .foregroundColor(GrainTheme.textSecondary)
+        Spacer()
+        Text(value)
+            .font(GrainTheme.mono(12))
+            .foregroundColor(GrainTheme.textPrimary)
     }
+    .padding(.top, 10)
+}
 
-    private func trendSection(points: [Decimal]) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            sectionDivider
-            sectionLabel("MARKET TREND")
-                .padding(.top, 20)
-                .padding(.bottom, 10)
+private func marketTrendSection(title: String, points: [Decimal]) -> some View {
+    let minChartMaxValue = Decimal(1)
 
+    VStack(alignment: .leading, spacing: 0) {
+        MarketSectionDivider()
+        marketSectionLabel(title)
+            .padding(.top, 20)
+            .padding(.bottom, 10)
+
+        if points.isEmpty {
+            Text("no trend data yet")
+                .font(GrainTheme.mono(11))
+                .foregroundColor(GrainTheme.textSecondary)
+        } else {
             HStack(alignment: .bottom, spacing: 4) {
-                let maxValue = max(points.max() ?? 0, Decimal(1))
+                let maxValue = max(points.max() ?? 0, minChartMaxValue)
                 ForEach(Array(points.suffix(6).enumerated()), id: \.offset) { _, point in
                     let ratio = CGFloat(truncating: (point / maxValue) as NSDecimalNumber)
                     Rectangle()
@@ -539,45 +485,32 @@ struct RetailerMarketTrendsView: View {
             .frame(height: 36, alignment: .bottom)
         }
     }
+}
 
-    private func forecastRow(label: String, value: String) -> some View {
-        HStack {
-            Text(label)
-                .font(GrainTheme.mono(11))
+private func crossRow(title: String, subtitle: String, value: String) -> some View {
+    HStack(alignment: .firstTextBaseline) {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(GrainTheme.mono(12))
+                .foregroundColor(GrainTheme.textPrimary)
+            Text(subtitle)
+                .font(GrainTheme.mono(10))
                 .foregroundColor(GrainTheme.textSecondary)
-            Spacer()
-            Text(value)
-                .font(GrainTheme.mono(12))
-                .foregroundColor(GrainTheme.textPrimary)
         }
-        .padding(.top, 10)
+        Spacer()
+        Text(value)
+            .font(GrainTheme.mono(12))
+            .foregroundColor(GrainTheme.textPrimary)
     }
+    .padding(.vertical, 10)
+    .overlay(alignment: .bottom) {
+        Rectangle()
+            .fill(GrainTheme.border)
+            .frame(height: 1)
+    }
+}
 
-    private func crossRow(title: String, subtitle: String, value: String) -> some View {
-        HStack(alignment: .firstTextBaseline) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(GrainTheme.mono(12))
-                    .foregroundColor(GrainTheme.textPrimary)
-                Text(subtitle)
-                    .font(GrainTheme.mono(10))
-                    .foregroundColor(GrainTheme.textSecondary)
-            }
-            Spacer()
-            Text(value)
-                .font(GrainTheme.mono(12))
-                .foregroundColor(GrainTheme.textPrimary)
-        }
-        .padding(.vertical, 10)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(GrainTheme.border)
-                .frame(height: 1)
-        }
-    }
-
-    private func signedCurrency(_ value: Decimal) -> String {
-        let sign = value > 0 ? "+" : ""
-        return "\(sign)\(value.formatted(.currency(code: "USD")))"
-    }
+private func signedCurrency(_ value: Decimal) -> String {
+    let sign = value > 0 ? "+" : ""
+    return "\(sign)\(value.formatted(.currency(code: "USD")))"
 }

@@ -321,8 +321,26 @@ struct SpendingAnalyticsTests {
 
 struct MarketTrendAnalyticsTests {
 
+    private func toDouble(_ value: Decimal?) -> Double? {
+        guard let value else { return nil }
+        return (value as NSDecimalNumber).doubleValue
+    }
+
+    private func makeInMemoryContainer() throws -> ModelContainer {
+        try ModelContainer(
+            for: Receipt.self,
+            ReceiptItem.self,
+            Product.self,
+            PricePoint.self,
+            Brand.self,
+            BankTransaction.self,
+            SpendingAnalytics.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+    }
+
     @Test func productTrendReportIncludesForecastAndCrossAnalysis() async throws {
-        let container = try ModelContainer(for: Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let container = try makeInMemoryContainer()
         let context = container.mainContext
 
         let janReceipt = Receipt(date: Date(timeIntervalSince1970: 1736899200), merchantName: "Trader Joe's", total: 12, subtotal: 11, tax: 1)
@@ -353,7 +371,7 @@ struct MarketTrendAnalyticsTests {
     }
 
     @Test func retailerTrendReportIncludesForecastAndProductComparison() async throws {
-        let container = try ModelContainer(for: Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let container = try makeInMemoryContainer()
         let context = container.mainContext
 
         let retailerReceiptA = Receipt(date: Date(timeIntervalSince1970: 1736899200), merchantName: "Trader Joe's", total: 20, subtotal: 18, tax: 2)
@@ -376,6 +394,46 @@ struct MarketTrendAnalyticsTests {
         #expect(report.monthlyTrends.count == 2)
         #expect(report.forecastTotalSpend != nil)
         #expect(report.productComparisons.contains(where: { $0.productName == "Milk" }))
+    }
+
+    @Test func productTrendReportReturnsNilForecastForSinglePoint() async throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+
+        let receipt = Receipt(date: Date(timeIntervalSince1970: 1736899200), merchantName: "Trader Joe's", total: 8, subtotal: 7, tax: 1)
+        receipt.items.append(ReceiptItem(name: "Milk", category: "Dairy", quantity: 1, unitPrice: 4, totalPrice: 4))
+        context.insert(receipt)
+        try context.save()
+
+        let service = AnalyticsService(modelContext: context)
+        let report = await service.getProductTrendReport(for: "Milk", category: "Dairy")
+
+        #expect(report.forecastAveragePrice == nil)
+        #expect(report.forecastTotalSpend == nil)
+    }
+
+    @Test func productTrendReportForecastsLinearIncrease() async throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+
+        let jan = Receipt(date: Date(timeIntervalSince1970: 1736899200), merchantName: "Store A", total: 2, subtotal: 2, tax: 0)
+        let feb = Receipt(date: Date(timeIntervalSince1970: 1739577600), merchantName: "Store A", total: 4, subtotal: 4, tax: 0)
+        let mar = Receipt(date: Date(timeIntervalSince1970: 1741996800), merchantName: "Store A", total: 6, subtotal: 6, tax: 0)
+        jan.items.append(ReceiptItem(name: "Bread", category: "Bakery", quantity: 1, unitPrice: 2, totalPrice: 2))
+        feb.items.append(ReceiptItem(name: "Bread", category: "Bakery", quantity: 1, unitPrice: 4, totalPrice: 4))
+        mar.items.append(ReceiptItem(name: "Bread", category: "Bakery", quantity: 1, unitPrice: 6, totalPrice: 6))
+        context.insert(jan)
+        context.insert(feb)
+        context.insert(mar)
+        try context.save()
+
+        let service = AnalyticsService(modelContext: context)
+        let report = await service.getProductTrendReport(for: "Bread", category: "Bakery")
+        let forecastAverage = try #require(toDouble(report.forecastAveragePrice))
+        let forecastSpend = try #require(toDouble(report.forecastTotalSpend))
+
+        #expect(abs(forecastAverage - 8.0) < 0.01)
+        #expect(abs(forecastSpend - 8.0) < 0.01)
     }
 }
 
