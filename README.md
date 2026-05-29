@@ -1,98 +1,152 @@
-# Grain - Receipt Scanner & Expense Tracker
 
-Grain is a comprehensive iOS app that scans receipts and tracks expenses down to the most granular level. Track your products, brands, and spending patterns with powerful analytics and insights.
+```
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
 
-**[Changelog](CHANGELOG.md)** · **[Docs](docs/Home.md)** · **[Architecture Decisions](docs/adr/README.md)** · **[Current State](docs/Current-State.md)** · **[Redesign Spec](docs/Redesign-Spec.md)**
+grain — local-first iOS receipt scanner. scan · parse · track · analyze.
 
-## Features
+                          PROOF-OF-CONCEPT
+        
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+```
 
-### 📱 Receipt Scanning
-- Camera-based receipt scanning with OCR
-- Automatic extraction of merchant, date, items, and prices
-- Support for various receipt formats and layouts
-- Manual editing and correction of scanned data
 
-### 📊 Expense Analytics
-- Detailed spending breakdowns by category, brand, and merchant
-- Weekly, monthly, quarterly, and yearly reports
-- Spending trends and patterns analysis
-- Tax-deductible expense tracking
 
-### 🏷️ Product & Brand Tracking
-- Automatic product categorization and brand recognition
-- Price history tracking for individual products
-- Brand spending analysis
-- Product-level expense insights
+<!-- dashboard-start -->
+<table width="100%">
+<tr valign="top">
 
-### 💰 Financial Insights
-- Total spending summaries
-- Average transaction amounts
-- Category-wise expense distribution
-- Tax preparation assistance
+<td width="35%" align="center">
 
-### 🔗 Bank Integration (Coming Soon)
-- Link receipts to bank transactions
-- Automatic transaction matching
-- Enhanced accuracy through dual verification
+<table width="100%"><tr><td bgcolor="000000" align="center"><b><samp><font color="white">g&thinsp;r&thinsp;a&thinsp;i&thinsp;n</font></samp></b></td></tr></table>
 
-## Technical Stack
+<br />
 
-- **Framework**: SwiftUI + SwiftData
-- **Platform**: iOS 17.0+
-- **Language**: Swift 5.9+
-- **OCR**: Vision Framework
-- **Database**: SwiftData with Core Data backend
-- **Charts**: Swift Charts framework
+<img src="screenshots/09-launch-screen.gif" width="140" alt="grain launch screen" />
 
-## Installation
+<br /><br />
 
-1. Clone the repository
-2. Open `grain.xcodeproj` in Xcode 15+
-3. Build and run on iOS device or simulator
+[![Build](https://github.com/larralapid/grain/actions/workflows/build.yml/badge.svg)](https://github.com/larralapid/grain/actions/workflows/build.yml)<br />
+![iOS 17+](https://img.shields.io/badge/iOS-17%2B-000000?style=flat-square&logo=apple&logoColor=white)<br />
+![Swift](https://img.shields.io/badge/Swift-5.9-F05138?style=flat-square&logo=swift&logoColor=white)<br />
+![License](https://img.shields.io/badge/license-proprietary-333333?style=flat-square)<br />
 
-## Usage
+<br />
 
-1. **Scan Receipt**: Use the camera tab to photograph your receipt
-2. **Review & Edit**: Check the extracted data and make corrections if needed
-3. **Save**: Store the receipt with all item details
-4. **Analytics**: View spending insights in the Analytics tab
-5. **Track Products**: Monitor your favorite brands and products
+<details>
+<summary><sup>v0.1.0 · poc</sup></summary>
+<br />
+<samp>
+scan → ocr → parse<br />
+save → browse → analyze<br />
+local-only · no cloud<br />
+</samp>
+</details>
 
-## Documentation
+</td>
 
-- [Current State Assessment](docs/Current-State.md) — audit of what's built, what's broken, and what's next
-- [Redesign Spec](docs/Redesign-Spec.md) — inspiration analysis, design system, and three wireframe directions
+<td width="65%">
 
-## Future Enhancements
+<table width="100%">
 
-- AI-powered expense categorization
-- MCP (Model Context Protocol) integration
-- Class action lawsuit notifications
-- Rebate tracking and alerts
-- Export functionality for tax software
-- Bank account integration
-- Receipt image enhancement
-- Multi-language OCR support
+<tr><td colspan="2" bgcolor="000000" align="center"><b><samp><font color="white">F&thinsp;L&thinsp;O&thinsp;W</font></samp></b></td></tr>
+<tr><td colspan="2" align="center"><br /><samp><font color="888888">scan&thinsp;→&thinsp;ocr&thinsp;→&thinsp;parse&thinsp;→&thinsp;save&thinsp;→&thinsp;browse&thinsp;→&thinsp;analyze</font></samp><br /><br /></td></tr>
 
-## Privacy & Security
+<tr>
+<td width="50%" valign="top" bgcolor="0d0d0d">
+<table width="100%"><tr><td bgcolor="000000"><b><samp><font color="white">D&thinsp;O&thinsp;C&thinsp;S</font></samp></b></td></tr></table>
+|&thinsp;- <a href="docs/Current-State.md">current state</a><br />
+|&thinsp;- <a href="docs/Redesign-Spec.md">redesign spec</a><br />
+|&thinsp;- <a href="docs/adr/README.md#index">ADRs</a><br />
+|&thinsp;- <a href="CHANGELOG.md">changelog</a><br />
+</td>
+<td width="50%" valign="top" bgcolor="0d0d0d">
+<table width="100%"><tr><td bgcolor="000000"><b><samp><font color="white">N&thinsp;A&thinsp;V</font></samp></b></td></tr></table>
+|&thinsp;- <a href="#what-it-does">what it does</a><br />
+|&thinsp;- <a href="#stack">stack</a><br />
+|&thinsp;- <a href="#run-locally">run locally</a><br />
+|&thinsp;- <a href="#status">status</a><br />
+</td>
+</tr>
 
-- All data is stored locally on your device
-- No cloud sync or external data sharing
-- Receipt images are processed on-device
-- Bank integration uses secure, encrypted connections
+<tr><td colspan="2" bgcolor="000000" align="center"><b><samp><font color="white">N&thinsp;O&thinsp;T&thinsp;E&thinsp;S</font></samp></b></td></tr>
 
-## Contributing
+<tr>
+<td bgcolor="0d0d0d" valign="top">
+<samp><font color="555555">→&thinsp;</font></samp><a href="docs/Current-State.md"><samp>mvp delta</samp></a><br />
+<sup><font color="555555">parser · errors · images · edit</font></sup>
+</td>
+<td bgcolor="0d0d0d" valign="top">
+<samp><font color="555555">→&thinsp;</font></samp><a href="docs/adr/README.md#index"><samp>arch decisions</samp></a><br />
+<sup><font color="555555">5 adrs · zero deps · local-only</font></sup>
+</td>
+</tr>
+<tr>
+<td bgcolor="0d0d0d" valign="top">
+<samp><font color="555555">→&thinsp;</font></samp><a href="CHANGELOG.md"><samp>changelog</samp></a><br />
+<sup><font color="555555">v0.1.0 · poc · notifications</font></sup>
+</td>
+<td bgcolor="0d0d0d" valign="top">
+<samp><font color="555555">→&thinsp;</font></samp><a href="docs/Redesign-Spec.md"><samp>redesign spec</samp></a><br />
+<sup><font color="555555">typography · tokens · wireframes</font></sup>
+</td>
+</tr>
 
-Contributions are currently accepted.
+</table>
+
+</td>
+
+</tr>
+</table>
+<!-- dashboard-end -->
+
+***
+
+## What it does
+
+- **Scan receipts** — photograph a paper receipt and extract merchant, items, prices, and tax with Apple Vision OCR.
+- **Track spending** — view totals and breakdowns by category, merchant, and brand.
+- **Watch prices** — see item-level price history across purchases.
+- **Index entities** — browse products, brands, and retailers pulled from receipt data.
+- **Stay local-first** — all storage and processing on device. No cloud, no accounts.
+
+## Stack
+
+| Layer | Tech |
+|---|---|
+| UI | SwiftUI |
+| Data | SwiftData |
+| OCR | Apple Vision |
+| Charts | Swift Charts |
+| Storage | Local-only |
+| Dependencies | Apple frameworks only |
+
+iOS 17+ · Swift 5.9+ · Xcode 15+
+
+## Run locally
+
+```bash
+git clone https://github.com/larralapid/grain.git
+cd grain
+open grain.xcodeproj
+```
+
+Build the `grain` target in Xcode and run on an iOS 17+ simulator or device.
+
+## Status
+
+Proof of concept. The core loop exists: scan, OCR, parse, save, browse, and analyze.
+
+Biggest gaps to close for MVP: manual receipt entry, full edit flow from scan proof, receipt image persistence, stronger parser reliability, and better user-facing error states.
+
+See [docs/Current-State.md](docs/Current-State.md) for the full assessment and MVP delta.
+
+## Docs
+
+- [Current State](docs/Current-State.md)
+- [Redesign Spec](docs/Redesign-Spec.md)
+- [Architecture Decisions](docs/adr/README.md)
+- [Changelog](CHANGELOG.md)
 
 ## License
 
-All rights reserved. This software is proprietary and confidential.
-
-## Contact
-
-For questions or support, please create an issue in this repository.
-
----
-
-*Grain helps you take control of your finances, one receipt at a time.*
+All rights reserved. See [LICENSE](LICENSE).

@@ -1,0 +1,48 @@
+# Xcode build artifacts
+build/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Xcode user-specific data (never share these)
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+
+# Xcode workspace user data (inside .xcodeproj too)
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Xcode misc
+*.moved-aside
+*.hmap
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+# Swift Package Manager
+.build/
+Packages/
+Package.resolved
+
+# CocoaPods (not used — ADR-0003)
+Pods/
+
+# OS files
+.DS_Store
+*.swp
+*~
+.Trashes
+Thumbs.db
+
+# Claude Code / agent working files
+.claude/settings.local.json
+.claude/worktrees/
+
+# Top-level workspace wrapper (Xcode-generated, not needed in repo)
+grain.xcworkspace/
