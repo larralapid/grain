@@ -1,5 +1,5 @@
 <!-- dashboard-start -->
-<table width="100%">
+<table>
 <tr valign="top">
 
 <td width="35%" align="center">
