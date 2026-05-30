@@ -7,6 +7,7 @@
 
 import Testing
 import Foundation
+import SwiftData
 @testable import grain
 
 // MARK: - Receipt Model Tests
@@ -414,5 +415,87 @@ struct ExtractionTests {
         #expect(extracted.total == Decimal(string: "20")!)
         #expect(extracted.items.count == 1)
         #expect(extracted.items.first?.name == "Olive Oil")
+    }
+}
+
+// MARK: - Product Indexer Tests
+
+@MainActor
+struct ProductIndexerTests {
+
+    private func makeContext() throws -> ModelContext {
+        let schema = Schema([Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self])
+        let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)])
+        return container.mainContext
+    }
+
+    @discardableResult
+    private func addReceipt(merchant: String, itemName: String, brand: String?, category: String?, price: String, in context: ModelContext) -> Receipt {
+        let amount = Decimal(string: price)!
+        // Insert the receipt before wiring relationships (mirrors DemoDataSeeder + the app's
+        // save sites); wiring an inverse relationship on a not-yet-inserted @Model traps.
+        let receipt = Receipt(date: Date(), merchantName: merchant, total: amount, subtotal: amount, tax: 0)
+        context.insert(receipt)
+        let item = ReceiptItem(name: itemName, brand: brand, category: category, quantity: 1, unitPrice: amount, totalPrice: amount)
+        item.receipt = receipt
+        receipt.items.append(item)
+        context.insert(item)
+        return receipt
+    }
+
+    @Test func indexCreatesProductBrandAndPricePoint() throws {
+        let context = try makeContext()
+        let receipt = addReceipt(merchant: "Trader Joe's", itemName: "Bananas", brand: "TJ", category: "Produce", price: "0.58", in: context)
+
+        ProductIndexer.index(receipt, in: context)
+        try context.save()
+
+        let products = try context.fetch(FetchDescriptor<Product>())
+        #expect(products.count == 1)
+        #expect(products.first?.name == "Bananas")
+        #expect(receipt.items.first?.product?.name == "Bananas")          // item linked to product
+        #expect(products.first?.priceHistory.count == 1)
+        #expect(products.first?.averagePrice == Decimal(string: "0.58")!)
+
+        let brands = try context.fetch(FetchDescriptor<Brand>())
+        #expect(brands.count == 1)
+        #expect(brands.first?.name == "TJ")
+        #expect(brands.first?.totalSpent == Decimal(string: "0.58")!)
+
+        let pricePoints = try context.fetch(FetchDescriptor<PricePoint>())
+        #expect(pricePoints.count == 1)
+        #expect(pricePoints.first?.merchantName == "Trader Joe's")
+    }
+
+    @Test func indexDedupesProductAcrossReceiptsAndAveragesPrice() throws {
+        let context = try makeContext()
+        let r1 = addReceipt(merchant: "Store", itemName: "Milk", brand: "Acme", category: "Dairy", price: "4.00", in: context)
+        ProductIndexer.index(r1, in: context)
+        try context.save()
+
+        let r2 = addReceipt(merchant: "Store", itemName: "Milk", brand: "Acme", category: "Dairy", price: "5.00", in: context)
+        ProductIndexer.index(r2, in: context)
+        try context.save()
+
+        let products = try context.fetch(FetchDescriptor<Product>())
+        #expect(products.count == 1)                                      // fetch-or-create deduped across sessions
+        #expect(products.first?.priceHistory.count == 2)
+        #expect(products.first?.averagePrice == Decimal(string: "4.50")!) // (4 + 5) / 2
+
+        let brands = try context.fetch(FetchDescriptor<Brand>())
+        #expect(brands.count == 1)
+        #expect(brands.first?.transactionCount == 2)
+    }
+
+    @Test func indexIsIdempotentForAlreadyLinkedItems() throws {
+        let context = try makeContext()
+        let receipt = addReceipt(merchant: "Store", itemName: "Eggs", brand: "Farm", category: "Dairy", price: "3.00", in: context)
+        ProductIndexer.index(receipt, in: context)
+        try context.save()
+        ProductIndexer.index(receipt, in: context)   // item already has a product → no-op
+        try context.save()
+
+        #expect(try context.fetch(FetchDescriptor<PricePoint>()).count == 1)   // no duplicate price point
+        #expect(try context.fetch(FetchDescriptor<Product>()).count == 1)
     }
 }

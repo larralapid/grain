@@ -51,12 +51,13 @@ Receipts → structured, granular data (item + brand + price history) → insigh
 
 ## Bugs (log + fix — priority over features)
 _When a bug is found, log it here AND fix it._
-- **BUG-1 (CONFIRMED, highest) — fixing now** — Real scans/manual entry create only `Receipt` + `ReceiptItem`, never `Product`/`Brand`/`PricePoint` (only `DemoDataSeeder` does). The Index tab, price history, and `averagePrice` are empty for all real data. Fix: a `ProductIndexer.index(receipt:in:)` (fetch-or-create from the context, mirror DemoDataSeeder) called from all 3 save sites.
+- **BUG-1 (FIXED)** — Real scans/manual entry now populate the product index: `ProductIndexer.index(receipt:in:)` fetch-or-creates `Product`/`Brand` and appends `PricePoint`s on save, called from all 3 save sites. Index tab + price history work for real data. Compile-verified; unit tests added.
 - **BUG-2 (high)** — `AnalyticsView` shows hardcoded placeholder copy ("MAR 2026", "+12% from feb…") and static `itemWatchPage` sample rows instead of real computed values. Fake data in a demo screen. Wire to real `AnalyticsService` output; remove placeholders.
-- **BUG-3 (high) — fixing now** — Scan save can persist `$0.00`: live `saveReceipt` uses only the extractor's values, so when the regex fallback finds no TOTAL the receipt saves with total 0 even though the proof sheet showed one. Fix: prefer `processor.total`/`merchantName` when extracted values are empty/zero (port the override from the dead `DocumentScanProcessor.makeReceipt`).
+- **BUG-3 (FIXED)** — Scan save now prefers the proof-sheet `processor.total`/`merchantName` when the extractor returns empty/zero, preventing `$0.00`/UNKNOWN saves on regex fallback. Dead `DocumentScanProcessor.makeReceipt`/`decimal(from:)` removed.
 - **BUG-4 (med)** — `AnalyticsService` merchant breakdown sums `receipt.total` (incl. tax) while category/brand sum `item.totalPrice` (pre-tax, excludes unparsed-item receipts) → inconsistent totals; `brandBreakdown` keys off free-text `item.brand`, not the `Brand` model. Unify after indexing lands.
 - **BUG-5 (med)** — Regex parser substring bugs: `contains("TOTAL")` also matches `SUBTOTAL`; `contains("TAX")` matches `TAXI`/`GALAXY` → misclassified amounts (`ReceiptScannerService`). Add word-boundary/order checks.
 - **BUG-6 (low)** — `CSVExporter.isoDate` uses `timeZone: .current`, contradicting its tz-independent doc — use UTC.
+- **BUG-7 (med)** — Deleting a `ReceiptItem` in `EditReceiptView` leaves its `PricePoint` orphaned and `Brand.totalSpent`/`transactionCount` stale (never decremented). Needs cleanup-on-delete + proper cascade (ties to A6). Found by the indexing builder.
 - _Investigated, NOT a bug:_ audit claimed the Claude key is never persisted — false positive; `SettingsView.aiSection` calls `AIConfig.setClaudeAPIKey` in the key field's `.onChange`.
 
 ## Architecture / cleanliness (standing bar)
@@ -89,6 +90,8 @@ _Capture here; do not act out of scope. Promote to Backlog when prioritized._
 - Mockup `screenshots/01-home.png` shows a top-right "filter" control not present in code (ghost affordance) — build it or drop it (designer M3).
 - Scan-overlay lightbox (ReceiptDetailView) uses raw scrim/white colors — consider a `GrainTheme.scrim` token rather than a blind swap (polish builder note).
 - Add a `ReceiptDetailView` #Preview with `needsReview = true` for visual QA of the flag marker.
+- Editing an existing item's price/qty doesn't update its `PricePoint` (price history = value at first index only) — consider updating the latest PricePoint on edit.
+- `ManualReceiptEntryView` has no brand/category inputs, so manual entries create `Product`s with empty brand/category and never populate the Brands index — add brand/category fields.
 - Split view: let the first/last line center via half-viewport insets (review Med finding).
 - Split view: persist OCR line bounding boxes at scan time so the view needn't re-run Vision.
 - `SpendingAnalytics` is a persisted `@Model` but behaves like derived data → make it a plain `struct` (data-model hygiene).

@@ -32,3 +32,6 @@ Branch: `auto/overnight-2026-05-30` (off `main` @ `cc8b1d2`). Driver: Claude (Op
 - **B2 (done)** — CSV data export: `CSVExporter` (RFC-4180 escaping, locale-independent money/dates) + Settings `ShareLink` row. Build green.
 - **design plan (received)** — designer subagent returned a prioritized UI-polish plan; captured in ROADMAP. Implementing the **Top 5** next (contrast/hierarchy, flag marker, proof-view discoverability); rest parked.
 - **B6 (done)** — UI polish Top 5: hero-total weight, dark-mode contrast (textSecondary 0.48 / dateHeader 0.34), greys→tokens, `needs review` markers, "proof" promoted to first menu item. Build green. Logged BUG-2 (analytics placeholders) + scrim-token idea.
+- **bug/arch audit** — confirmed BUG-1 (no product indexing on real saves) + found BUG-3..7, A6..A10. SpendingAnalytics suspected then cleared (the verify gate caught a wrong hypothesis).
+- **stall (~18h)** — an `xcodebuild test` run deadlocked building the UI-test bundle and hung ~17.75h, blocking the loop; killed on resume (this was the "1065 min" task).
+- **BUG-1 + BUG-3 (fixed)** — `ProductIndexer` indexes products/brands/price-points at every save site; scan save prefers proof-sheet values (no `$0`); dead code removed. Compile-verified; indexer unit tests added (fixed an insert-order test-helper crash).

@@ -123,6 +123,9 @@ struct ManualReceiptEntryView: View {
             modelContext.insert(item)
         }
 
+        // Populate the product index (Product / Brand / PricePoint) from the entered items.
+        ProductIndexer.index(receipt, in: modelContext)
+
         do {
             try modelContext.save()
             dismiss()

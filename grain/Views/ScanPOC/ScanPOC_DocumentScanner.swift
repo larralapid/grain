@@ -152,37 +152,6 @@ final class DocumentScanProcessor {
             return hasPrice && !isTotal
         }.count
     }
-
-    // MARK: - Persistence
-
-    /// Builds a `Receipt` (with line items) from the OCR text captured during this scan.
-    /// Reuses the canonical parser in `ReceiptScannerService` so parsing logic isn't forked,
-    /// then prefers the merchant/total shown on the proof sheet for consistency with the preview.
-    @MainActor
-    func makeReceipt(imageData: Data?) -> Receipt {
-        let receipt = ReceiptScannerService().parseReceiptFromText(ocrText)
-            ?? Receipt(date: .now, merchantName: "UNKNOWN", total: 0, subtotal: 0, tax: 0, ocrText: ocrText)
-
-        if !merchantName.isEmpty {
-            receipt.merchantName = merchantName
-        }
-        if let parsedTotal = Self.decimal(from: total) {
-            receipt.total = parsedTotal
-        }
-        receipt.imageData = imageData
-
-        // Set the inverse side so the relationship persists cleanly (mirrors DemoDataSeeder).
-        for item in receipt.items {
-            item.receipt = receipt
-        }
-        return receipt
-    }
-
-    /// Parses a display string like "$12.34" into a `Decimal`, ignoring currency symbols.
-    static func decimal(from displayString: String) -> Decimal? {
-        let digits = displayString.filter { $0.isNumber || $0 == "." }
-        return digits.isEmpty ? nil : Decimal(string: digits)
-    }
 }
 
 // MARK: - Document Scanner View
@@ -268,16 +237,32 @@ struct ScanPOC_DocumentScanner: View {
         let ocrText = processor.ocrText
         isSaving = true
 
+        let proofMerchant = processor.merchantName
+        let proofTotal = processor.total
+
         Task {
             // Pick the best extraction tier (Claude → on-device → regex) with graceful fallback.
             let (source, extracted) = await ExtractorCoordinator.extract(image: firstImage, ocrText: ocrText)
             let receipt = extracted.makeReceipt(imageData: imageData, source: source, ocrText: ocrText)
+
+            // Fall back to the proof-sheet values when the extractor missed them: this avoids
+            // saving "UNKNOWN" / $0.00 when the regex fallback can't find the merchant or TOTAL line.
+            if receipt.merchantName.isEmpty || receipt.merchantName == "UNKNOWN",
+               !proofMerchant.isEmpty, proofMerchant != "UNKNOWN" {
+                receipt.merchantName = proofMerchant
+            }
+            if receipt.total == 0, let parsedTotal = parseDecimal(from: proofTotal) {
+                receipt.total = parsedTotal
+            }
 
             // Mirror the proven seeding pattern: insert the receipt and each line item.
             modelContext.insert(receipt)
             for item in receipt.items {
                 modelContext.insert(item)
             }
+
+            // Populate the product index (Product / Brand / PricePoint) from the saved items.
+            ProductIndexer.index(receipt, in: modelContext)
 
             do {
                 try modelContext.save()
@@ -293,6 +278,12 @@ struct ScanPOC_DocumentScanner: View {
                 processor.errorMessage = "Couldn't save receipt: \(error.localizedDescription)"
             }
         }
+    }
+
+    /// Parses a display string like "$12.34" into a `Decimal`, ignoring currency symbols.
+    private func parseDecimal(from displayString: String) -> Decimal? {
+        let digits = displayString.filter { $0.isNumber || $0 == "." }
+        return digits.isEmpty ? nil : Decimal(string: digits)
     }
 
     // MARK: - Empty State

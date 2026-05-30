@@ -393,6 +393,10 @@ struct EditReceiptView: View {
         }
         receipt.items = rebuilt
 
+        // Index any newly-added items into the product index. Items that already have a linked
+        // `product` are skipped, so edits only pick up the new line items.
+        ProductIndexer.index(receipt, in: modelContext)
+
         // Resolving a flag clears it but keeps originalExtractionJSON for the eval corpus.
         receipt.needsReview = false
         receipt.reviewReason = nil
