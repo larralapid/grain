@@ -1,8 +1,10 @@
 import SwiftUI
+import SwiftData
 import FoundationModels
 
 struct SettingsView: View {
     @ObservedObject private var appearance = AppearanceManager.shared
+    @Query private var receipts: [Receipt]
     @AppStorage("ai.enabled") private var aiEnabled = true
     @AppStorage("ai.claude.enabled") private var claudeEnabled = false
     @State private var apiKeyInput = ""
@@ -79,10 +81,8 @@ struct SettingsView: View {
                         label: "Tax Deductions",
                         description: "Configure which categories qualify for tax deduction tracking."
                     )
-                    settingRow(
-                        label: "Export Data",
-                        description: "Download your receipts and analytics as CSV or PDF."
-                    )
+                    exportRow
+
                     settingRow(
                         label: "About Grain",
                         description: "Version, acknowledgements, and privacy policy."
@@ -94,6 +94,38 @@ struct SettingsView: View {
         .sheet(isPresented: $showingReviewQueue) {
             ReceiptReviewQueueView()
         }
+    }
+
+    // Export Data: writes receipts to a temp CSV and presents the share sheet.
+    // ShareLink needs a non-optional item, so we disable the row when there is
+    // nothing to export or the file could not be written.
+    @ViewBuilder
+    private var exportRow: some View {
+        if let url = exportCSVURL {
+            ShareLink(item: url) {
+                settingRow(
+                    label: "Export Data",
+                    description: "Download your \(receipts.count) receipt\(receipts.count == 1 ? "" : "s") as a CSV, one row per item."
+                )
+            }
+            .buttonStyle(.plain)
+        } else {
+            settingRow(
+                label: "Export Data",
+                description: receipts.isEmpty
+                    ? "Nothing to export yet \u{2014} scan a receipt first."
+                    : "Download your receipts and analytics as CSV or PDF."
+            )
+            .opacity(0.5)
+        }
+    }
+
+    // Builds the CSV file on demand. A stable, timestamped name keeps each
+    // export distinct while remaining valid for the share sheet.
+    private var exportCSVURL: URL? {
+        guard !receipts.isEmpty else { return nil }
+        let stamp = CSVExporter.isoDate(Date())
+        return try? CSVExporter.writeCSV(from: receipts, fileName: "grain-export-\(stamp)")
     }
 
     private var aiSection: some View {

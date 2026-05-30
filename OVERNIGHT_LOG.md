@@ -28,3 +28,6 @@ Branch: `auto/overnight-2026-05-30` (off `main` @ `cc8b1d2`). Driver: Claude (Op
 - **item 5 (done)** — verified `ContentView.swift`/`Item.swift` no longer exist; nothing to remove.
 - **item 1 (done)** — manual receipt entry: `+ add` in the receipts header opens `ManualReceiptEntryView` (Form, line items, totals); `extractionSource="manual"`. Build green.
 - **item 8 (done)** — wrote `CONTRIBUTING.md` (#43) and `docs/context.md` (#44) in parallel while builder #1 ran.
+- **process** — added `docs/ROADMAP.md` (plan of record + backlog + parking lot). Discoveries captured there, not acted on out of scope.
+- **B2 (done)** — CSV data export: `CSVExporter` (RFC-4180 escaping, locale-independent money/dates) + Settings `ShareLink` row. Build green.
+- **design plan (received)** — designer subagent returned a prioritized UI-polish plan; captured in ROADMAP. Implementing the **Top 5** next (contrast/hierarchy, flag marker, proof-view discoverability); rest parked.
