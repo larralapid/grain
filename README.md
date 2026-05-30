@@ -162,12 +162,7 @@ local-only · no cloud<br>
 <td width="65%">
 <table width="100%">
 <tbody>
-<tr><td colspan="2" align="center"><br><samp><code class="rgh-seen--12550978944">▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-<span data-rgh-whitespace="space"><span data-rgh-whitespace="space">                                             </span></span>
-<span data-rgh-whitespace="space"><span data-rgh-whitespace="space">  </span></span>GRAIN<span data-rgh-whitespace="space"><span data-rgh-whitespace="space">  </span></span>·<span data-rgh-whitespace="space"><span data-rgh-whitespace="space">  </span></span>receipt<span data-rgh-whitespace="space"> </span>scanner<span data-rgh-whitespace="space"> </span>+<span data-rgh-whitespace="space"> </span>expense<span data-rgh-whitespace="space"> </span>tracker<span data-rgh-whitespace="space"> </span>for<span data-rgh-whitespace="space"> </span>iOS
-<span data-rgh-whitespace="space"><span data-rgh-whitespace="space">                                             </span></span>
-▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-</code></samp><br><br></td></tr>
+<tr><td colspan="2" align="center"><blockquote>GRAIN · receipt scanner + expense tracker for iOS</blockquote></td></tr>
 <tr>
 <td width="50%" valign="top">
 <table width="100%"><tbody><tr><td><b><samp>D O C S</samp></b></td></tr></tbody></table>
@@ -177,31 +172,29 @@ local-only · no cloud<br>
 | - <a href="/larralapid/grain/blob/copilot/update-readme-dashboard-layout/CHANGELOG.md">changelog</a><br>
 </td>
 <td width="50%" valign="top">
-<table width="100%"><tbody><tr><td><b><samp>N A V</samp></b></td></tr></tbody></table>
-| - <a href="#what-it-does">what it does</a><br>
-| - <a href="#stack">stack</a><br>
+| - <a href="#what-it-does">what it does</a><br>
+| - <a href="#screens">screens</a><br>
+| - <a href="#poc-details">poc details</a><br>
 | - <a href="#run-locally">run locally</a><br>
-| - <a href="#status">status</a><br>
-</td>
-</tr>
-<tr><td colspan="2" align="center"><b><samp>N O T E S</samp></b></td></tr>
+
+<tr><td colspan="2" align="center"><b><samp>D O C S</samp></b></td></tr>
 <tr>
 <td valign="top">
-<samp>→ </samp><a href="/larralapid/grain/blob/copilot/update-readme-dashboard-layout/docs/Current-State.md"><samp>mvp delta</samp></a><br>
-<sup>parser · errors · images · edit</sup>
+<samp>→ </samp><a href="./docs/Current-State.md"><samp>current state</samp></a><br>
+<sup>mvp delta · parser · errors · images · edit</sup>
 </td>
 <td valign="top">
-<samp>→ </samp><a href="/larralapid/grain/blob/copilot/update-readme-dashboard-layout/docs/adr/README.md#index"><samp>arch decisions</samp></a><br>
-<sup>5 adrs · zero deps · local-only</sup>
+<samp>→ </samp><a href="./docs/adr/README.md#index"><samp>adrs</samp></a><br>
+<sup>architecture decisions · 5 adrs</sup>
 </td>
 </tr>
 <tr>
 <td valign="top">
-<samp>→ </samp><a href="/larralapid/grain/blob/copilot/update-readme-dashboard-layout/CHANGELOG.md"><samp>changelog</samp></a><br>
+<samp>→ </samp><a href="./CHANGELOG.md"><samp>changelog</samp></a><br>
 <sup>v0.1.0 · poc · notifications</sup>
 </td>
 <td valign="top">
-<samp>→ </samp><a href="/larralapid/grain/blob/copilot/update-readme-dashboard-layout/docs/Redesign-Spec.md"><samp>redesign spec</samp></a><br>
+<samp>→ </samp><a href="./docs/Redesign-Spec.md"><samp>redesign spec</samp></a><br>
 <sup>typography · tokens · wireframes</sup>
 </td>
 </tr>
@@ -263,7 +256,7 @@ local-only · no cloud<br>
 
 ---
 
-## ◈ RUN
+## ◈ RUN LOCALLY
 
 ```sh
 open grain.xcodeproj
