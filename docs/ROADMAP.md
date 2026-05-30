@@ -5,6 +5,8 @@ The durable plan of record. Goal: a polished, working proof of concept that demo
 **How to use this file**
 - Anything noticed mid-work (by Claude or a subagent) gets **captured in the Backlog or Parking Lot** — don't act on it out of scope. Scope discipline > momentum.
 - Items flow: Parking Lot → Backlog (prioritized) → in progress → done. Reference the GitHub issue where one exists.
+- **Bugs are logged AND fixed** (Bugs section below) — they take **priority over new features**. Don't ship around a bug.
+- **Clean architecture is a standing bar** — fix smells (Architecture section), don't accumulate them.
 - `OVERNIGHT_LOG.md` is the dated work journal; **this** file is the plan of record.
 
 ## Vision
@@ -45,6 +47,18 @@ Receipts → structured, granular data (item + brand + price history) → insigh
 | B9 | Info.plist `ITSAppUsesNonExemptEncryption = NO` | infra | Low | TestFlight | todo |
 | B10 | CONTRIBUTING.md + docs/context.md | docs | Med | #43 #44 | done |
 | B11 | docs/ROADMAP.md (this file) | docs | Med | process | done |
+
+## Bugs (log + fix — priority over features)
+_When a bug is found, log it here AND fix it._
+- **BUG-1 (suspected, high)** — Real scans likely populate only `Receipt` + `ReceiptItem`, not `Product` / `Brand` / `PricePoint`. Only `DemoDataSeeder` links those today, so the **product index + price history (the core granular feature) are empty for actually-scanned receipts**. Verify in `ExtractedReceipt.makeReceipt` / the scan-save path; if confirmed, fix by indexing products/brands/price-points on save (mirror `DemoDataSeeder` linking). Audit running to confirm.
+
+## Architecture / cleanliness (standing bar)
+- **A1** `SpendingAnalytics` is a persisted `@Model` but is derived data → make it a plain `struct` returned by `AnalyticsService`.
+- **A2** Errors swallowed with `print()` across services/views → user-facing alerts (= B3).
+- **A3** OCR parser internals untested + no regression corpus (= B5).
+- **A4** O(n) analytics aggregation + per-render recompute (`ReceiptListView.groupedReceipts`, `ItemAnalyticsView`) → cache / SwiftData predicate.
+- **A5** Dead code: `DocumentScanProcessor.makeReceipt` + `decimal(from:)` in `ScanPOC_DocumentScanner` are superseded by `ExtractorCoordinator` — remove.
+- _(more from the running audit)_
 
 ## Design polish (from designer review, 2026-05-30)
 Implementing the **Top 5** now (high-impact, low-risk, GrainTheme-consistent); the rest are backlog. Headline risk: dark-mode contrast — hero totals and metadata recede on near-black (visible in screenshots).
