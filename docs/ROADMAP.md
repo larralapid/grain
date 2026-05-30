@@ -51,16 +51,25 @@ Receipts → structured, granular data (item + brand + price history) → insigh
 
 ## Bugs (log + fix — priority over features)
 _When a bug is found, log it here AND fix it._
-- **BUG-1 (suspected, high)** — Real scans likely populate only `Receipt` + `ReceiptItem`, not `Product` / `Brand` / `PricePoint`. Only `DemoDataSeeder` links those today, so the **product index + price history (the core granular feature) are empty for actually-scanned receipts**. Verify in `ExtractedReceipt.makeReceipt` / the scan-save path; if confirmed, fix by indexing products/brands/price-points on save (mirror `DemoDataSeeder` linking). Audit running to confirm.
-- **BUG-2 (high)** — `AnalyticsView` shows hardcoded placeholder copy ("MAR 2026", "+12% from feb…") and static `itemWatchPage` sample rows instead of real computed values (flagged by the polish builder). Displays fake data in a demo screen. Verify against `AnalyticsService` and wire to real output; remove placeholders.
+- **BUG-1 (CONFIRMED, highest) — fixing now** — Real scans/manual entry create only `Receipt` + `ReceiptItem`, never `Product`/`Brand`/`PricePoint` (only `DemoDataSeeder` does). The Index tab, price history, and `averagePrice` are empty for all real data. Fix: a `ProductIndexer.index(receipt:in:)` (fetch-or-create from the context, mirror DemoDataSeeder) called from all 3 save sites.
+- **BUG-2 (high)** — `AnalyticsView` shows hardcoded placeholder copy ("MAR 2026", "+12% from feb…") and static `itemWatchPage` sample rows instead of real computed values. Fake data in a demo screen. Wire to real `AnalyticsService` output; remove placeholders.
+- **BUG-3 (high) — fixing now** — Scan save can persist `$0.00`: live `saveReceipt` uses only the extractor's values, so when the regex fallback finds no TOTAL the receipt saves with total 0 even though the proof sheet showed one. Fix: prefer `processor.total`/`merchantName` when extracted values are empty/zero (port the override from the dead `DocumentScanProcessor.makeReceipt`).
+- **BUG-4 (med)** — `AnalyticsService` merchant breakdown sums `receipt.total` (incl. tax) while category/brand sum `item.totalPrice` (pre-tax, excludes unparsed-item receipts) → inconsistent totals; `brandBreakdown` keys off free-text `item.brand`, not the `Brand` model. Unify after indexing lands.
+- **BUG-5 (med)** — Regex parser substring bugs: `contains("TOTAL")` also matches `SUBTOTAL`; `contains("TAX")` matches `TAXI`/`GALAXY` → misclassified amounts (`ReceiptScannerService`). Add word-boundary/order checks.
+- **BUG-6 (low)** — `CSVExporter.isoDate` uses `timeZone: .current`, contradicting its tz-independent doc — use UTC.
+- _Investigated, NOT a bug:_ audit claimed the Claude key is never persisted — false positive; `SettingsView.aiSection` calls `AIConfig.setClaudeAPIKey` in the key field's `.onChange`.
 
 ## Architecture / cleanliness (standing bar)
 - **A1** `SpendingAnalytics` is a persisted `@Model` but is derived data → make it a plain `struct` returned by `AnalyticsService`.
 - **A2** Errors swallowed with `print()` across services/views → user-facing alerts (= B3).
 - **A3** OCR parser internals untested + no regression corpus (= B5).
 - **A4** O(n) analytics aggregation + per-render recompute (`ReceiptListView.groupedReceipts`, `ItemAnalyticsView`) → cache / SwiftData predicate.
-- **A5** Dead code: `DocumentScanProcessor.makeReceipt` + `decimal(from:)` in `ScanPOC_DocumentScanner` are superseded by `ExtractorCoordinator` — remove.
-- _(more from the running audit)_
+- **A5** Dead code: `DocumentScanProcessor.makeReceipt` + `decimal(from:)` in `ScanPOC_DocumentScanner` are superseded by `ExtractorCoordinator` — remove (folding into the BUG-3 fix).
+- **A6** SwiftData relationships missing inverses/delete rules on `Product.priceHistory`, `Brand.products`, `PricePoint.*`, `ReceiptItem.product`, `BankTransaction.receipt` → orphans. Declare carefully (schema change → launch-test, likely needs A10).
+- **A7** `KeychainStore` ignores `SecItem*` status codes + doesn't set `kSecAttrAccessible` — silent write failures. Add status checks + `kSecAttrAccessibleAfterFirstUnlock`.
+- **A8** `DocumentScanProcessor.parseBasicFields` is a 3rd copy of the total-regex parser — dedupe against `RegexReceiptExtractor`.
+- **A9** `ReceiptScannerService` is class-level `@MainActor` (Vision on main; forces `RegexReceiptExtractor` into `MainActor.run`). Make parse methods `static`/`nonisolated`; scope `@MainActor` to the `@Published` surface.
+- **A10** No `VersionedSchema`/migration plan (`grainApp` uses a bare `Schema`) — introduce before the A6 relationship changes and before real user data.
 
 ## Design polish (from designer review, 2026-05-30)
 Implementing the **Top 5** now (high-impact, low-risk, GrainTheme-consistent); the rest are backlog. Headline risk: dark-mode contrast — hero totals and metadata recede on near-black (visible in screenshots).
