@@ -12,7 +12,7 @@ Branch: `auto/overnight-2026-05-30` (off `main` @ `cc8b1d2`). Driver: Claude (Op
 ## Backlog (prioritized)
 | # | Item | Issue | Owner | Status |
 |---|------|-------|-------|--------|
-| 1 | Manual receipt entry — wire "+" on receipts list to a form | #58 #3 | builder | pending |
+| 1 | Manual receipt entry — wire "+" on receipts list to a form | #58 #3 | builder | done |
 | 2 | Data export (CSV) from Settings → share sheet | #5 #26 | builder | pending |
 | 3 | Replace `print()` error-swallowing with user-facing alerts | #58 | builder | pending |
 | 4 | "Flagged for review" badge in ReceiptDetailView | review | inline | pending |
@@ -26,5 +26,5 @@ Branch: `auto/overnight-2026-05-30` (off `main` @ `cc8b1d2`). Driver: Claude (Op
 ## Progress log
 - **start** — committed session work to `main` (`cc8b1d2`: hybrid AI extraction, split proof view, correction flow). Branched, wrote this plan.
 - **item 5 (done)** — verified `ContentView.swift`/`Item.swift` no longer exist; nothing to remove.
-- **item 1 (in progress)** — builder subagent building manual receipt entry (`+` on receipts list → form).
+- **item 1 (done)** — manual receipt entry: `+ add` in the receipts header opens `ManualReceiptEntryView` (Form, line items, totals); `extractionSource="manual"`. Build green.
 - **item 8 (done)** — wrote `CONTRIBUTING.md` (#43) and `docs/context.md` (#44) in parallel while builder #1 ran.

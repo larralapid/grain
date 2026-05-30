@@ -5,6 +5,7 @@ struct ReceiptListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Receipt.date, order: .reverse) private var receipts: [Receipt]
     @State private var navigationPath = NavigationPath()
+    @State private var showingManualEntry = false
 
     private var monthTotal: Decimal {
         let calendar = Calendar.current
@@ -43,7 +44,7 @@ struct ReceiptListView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     header
                     divider
-                    sectionLabel("recent")
+                    recentHeader
 
                     if receipts.isEmpty {
                         emptyState
@@ -61,6 +62,9 @@ struct ReceiptListView: View {
             .navigationDestination(for: ReceiptItem.self) { item in
                 ItemAnalyticsView(item: item)
             }
+        }
+        .sheet(isPresented: $showingManualEntry) {
+            ManualReceiptEntryView()
         }
     }
 
@@ -110,6 +114,27 @@ struct ReceiptListView: View {
             .textCase(.uppercase)
             .foregroundColor(GrainTheme.textSecondary)
             .padding(.bottom, 16)
+    }
+
+    private var recentHeader: some View {
+        HStack(alignment: .firstTextBaseline) {
+            sectionLabel("recent")
+
+            Spacer()
+
+            Button {
+                showingManualEntry = true
+            } label: {
+                Text("+ add")
+                    .font(GrainTheme.mono(10))
+                    .tracking(1.4)
+                    .textCase(.uppercase)
+                    .foregroundColor(GrainTheme.textPrimary)
+                    .padding(.bottom, 16)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("add receipt manually")
+        }
     }
 
     private var receiptJournal: some View {
