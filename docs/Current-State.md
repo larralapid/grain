@@ -2,6 +2,24 @@
 
 Audited on 2026-04-01 against local branch main.
 
+```
+┌──────────────────────────────────────────────────────────────┐
+│  grain · current state · 2026-04-01                         │
+│  ──────────────────────────────────────────────────────────  │
+│  ✓  scan → ocr → parse → save                              │
+│  ✓  receipt list + detail view                             │
+│  ✓  analytics: category · brand · merchant                 │
+│  ✓  product index + brand catalog                          │
+│  ✓  ci: build + test on every pr                           │
+│  ──────────────────────────────────────────────────────────  │
+│  ✗  receipt image not persisted                            │
+│  ✗  edit from scan proof (todo button)                     │
+│  ✗  manual entry fallback (todo button)                    │
+│  ○  bank transaction import (model exists, no ui)          │
+│  ○  user-facing error states (silent print)                │
+└──────────────────────────────────────────────────────────────┘
+```
+
 ## Executive Snapshot
 
 Grain has a healthy proof-of-concept core: scan receipts, parse text, store receipts, browse details, and view analytics.
@@ -67,6 +85,23 @@ The main project risk is not architecture. The main risk is product completeness
 - MVP definition needs explicit acceptance criteria so feature work does not sprawl.
 
 ## Priority Workstream Recommendation
+
+```
+  ╔══════════════════════════════════════════╗
+  ║  MVP PRIORITY LADDER                     ║
+  ╠══════════════════════════════════════════╣
+  ║  1  backlog hygiene     close stale issues ║
+  ║  2  manual entry        biggest ux gap   ║
+  ║  3  scan proof edit     wire todo button ║
+  ║  4  image persistence   wire imageData   ║
+  ╠══════════════════════════════════════════╣
+  ║  5  parser reliability  test corpus      ║
+  ║  6  error ux            replace print()  ║
+  ╠══════════════════════════════════════════╣
+  ║  ✗  cloud sync          deferred (adr-0005) ║
+  ║  ✗  backend api         deferred         ║
+  ╚══════════════════════════════════════════╝
+```
 
 1. Stabilize backlog hygiene:
 - Close completed and out-of-scope issues.
