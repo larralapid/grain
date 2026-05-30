@@ -19,10 +19,12 @@ Branch: `auto/overnight-2026-05-30` (off `main` @ `cc8b1d2`). Driver: Claude (Op
 | 5 | Remove unused template files (ContentView/Item) | hygiene | inline | done — files already absent |
 | 6 | Info.plist `ITSAppUsesNonExemptEncryption = NO` (TestFlight) | follow-up | inline | pending |
 | 7 | AnalyticsService + parser regression tests | #58 | builder | pending |
-| 8 | CONTRIBUTING.md + docs/context.md | #43 #44 | docs agent | pending |
+| 8 | CONTRIBUTING.md + docs/context.md | #43 #44 | inline | done |
 | 9 | Targeted UI polish + pitch screenshots | #7 | designer | pending |
 | 10 | Attach sample images to seeded demo receipts (split-view demo) | demo | builder | pending |
 
 ## Progress log
 - **start** — committed session work to `main` (`cc8b1d2`: hybrid AI extraction, split proof view, correction flow). Branched, wrote this plan.
 - **item 5 (done)** — verified `ContentView.swift`/`Item.swift` no longer exist; nothing to remove.
+- **item 1 (in progress)** — builder subagent building manual receipt entry (`+` on receipts list → form).
+- **item 8 (done)** — wrote `CONTRIBUTING.md` (#43) and `docs/context.md` (#44) in parallel while builder #1 ran.
