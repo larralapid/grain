@@ -50,7 +50,7 @@ class ReceiptScannerService: ObservableObject {
         }
     }
     
-    nonisolated private func parseReceiptFromText(_ text: String) -> Receipt? {
+    nonisolated func parseReceiptFromText(_ text: String) -> Receipt? {
         let lines = text.components(separatedBy: .newlines)
         var merchantName = ""
         var total: Decimal = 0

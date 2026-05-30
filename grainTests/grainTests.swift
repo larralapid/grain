@@ -320,16 +320,25 @@ struct SpendingAnalyticsTests {
 
 struct OCRParserTests {
 
-    // Test the parser via a testable wrapper
-    // Note: ReceiptScannerService methods are private, so we test
-    // the public scanReceipt flow. For unit testing internal parsing,
-    // these methods should be made internal (not private) with @testable.
+    // ReceiptScannerService is @MainActor, so tests that touch it must be too.
 
+    @MainActor
     @Test func receiptScannerServiceInitialState() async throws {
         let service = ReceiptScannerService()
         #expect(service.isScanning == false)
         #expect(service.scannedText == "")
         #expect(service.lastError == nil)
+    }
+
+    // parseReceiptFromText is now `internal`, so the OCR parser can be unit-tested directly.
+    @MainActor
+    @Test func parsesMerchantTotalAndItemsFromText() async throws {
+        let service = ReceiptScannerService()
+        let receipt = service.parseReceiptFromText("Trader Joe's\nBananas 0.58\nTOTAL 0.58")
+
+        #expect(receipt?.merchantName == "Trader Joe's")
+        #expect(receipt?.total == Decimal(string: "0.58")!)
+        #expect(receipt?.items.contains(where: { $0.name == "Bananas" }) == true)
     }
 }
 
@@ -350,5 +359,60 @@ struct PricePointTests {
         #expect(pp.merchantName == "Whole Foods")
         #expect(pp.product == nil)
         #expect(pp.receiptItem == nil)
+    }
+}
+
+// MARK: - Extraction Tests
+
+struct ExtractionTests {
+
+    @MainActor
+    @Test func makeReceiptMapsExtractionToModel() throws {
+        let extracted = ExtractedReceipt(
+            merchantName: "Trader Joe's",
+            merchantAddress: "123 Main",
+            date: nil,
+            subtotal: Decimal(string: "9.00")!,
+            tax: Decimal(string: "1.00")!,
+            total: Decimal(string: "10.00")!,
+            items: [
+                ExtractedItem(name: "Bananas", quantity: 2,
+                              unitPrice: Decimal(string: "0.29")!,
+                              totalPrice: Decimal(string: "0.58")!,
+                              brand: "TJ", category: "Produce")
+            ]
+        )
+
+        let receipt = extracted.makeReceipt(imageData: nil, source: .claude, ocrText: "raw ocr")
+
+        #expect(receipt.merchantName == "Trader Joe's")
+        #expect(receipt.total == Decimal(string: "10.00")!)
+        #expect(receipt.items.count == 1)
+        #expect(receipt.items.first?.name == "Bananas")
+        #expect(receipt.items.first?.receipt === receipt)   // inverse relationship is set
+        #expect(receipt.extractionSource == "claude")
+        #expect(receipt.originalExtractionJSON != nil)       // captured for the eval corpus
+    }
+
+    @MainActor
+    @Test func coordinatorFallsBackToRegexWhenAIDisabled() async throws {
+        UserDefaults.standard.set(false, forKey: "ai.enabled")
+        defer { UserDefaults.standard.removeObject(forKey: "ai.enabled") }
+
+        let (source, _) = ExtractorCoordinator.selectExtractor()
+        #expect(source == .regex)
+    }
+
+    @Test func claudeToolUseResponseParses() throws {
+        let json = """
+        {"content":[{"type":"tool_use","name":"record_receipt","input":{"merchantName":"Costco","subtotal":18.0,"tax":2.0,"total":20.0,"items":[{"name":"Olive Oil","quantity":1,"unitPrice":18.0,"totalPrice":18.0}]}}]}
+        """.data(using: .utf8)!
+
+        let extracted = try ClaudeReceiptExtractor.parse(json)
+
+        #expect(extracted.merchantName == "Costco")
+        #expect(extracted.total == Decimal(string: "20")!)
+        #expect(extracted.items.count == 1)
+        #expect(extracted.items.first?.name == "Olive Oil")
     }
 }

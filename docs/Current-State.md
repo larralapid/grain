@@ -2,6 +2,8 @@
 
 Audited on 2026-04-01 against local branch main.
 
+> **Update — 2026-05-29:** The scan-to-save flow has been repaired. The `SAVE RECEIPT` button in the document scanner was previously a no-op stub, so receipts were never actually created — the prior "scan → save works" claim was aspirational. Saving now persists the receipt, its parsed line items, and the captured image. A corrupted default Xcode scheme (`grain.xcscheme`) that caused **"No Destinations"** in Xcode was also fixed. Rows below are annotated where this supersedes the 2026-04-01 snapshot.
+
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  grain · current state · 2026-04-01                         │
@@ -33,7 +35,7 @@ The main project risk is not architecture. The main risk is product completeness
 | Platform and stack | iOS 17+, SwiftUI, SwiftData, Vision, Swift Charts | Aligned with ADRs |
 | Dependencies | Apple frameworks only | Aligned with ADR-0003 |
 | Storage strategy | Local only | Aligned with ADR-0005 |
-| Core flow | Scan -> OCR -> parse -> save -> list/detail | Working at POC quality |
+| Core flow | Scan -> OCR -> parse -> save -> list/detail | Working at POC quality (save repaired 2026-05-29; was a no-op stub before) |
 | Analytics | Receipt/category/merchant aggregations and charts | Working |
 | Product index | Product and brand indexing from receipt items | Working |
 | CI workflow | Build + test workflow exists | Present in .github/workflows/build.yml |
@@ -48,7 +50,7 @@ The main project risk is not architecture. The main risk is product completeness
 
 ### Data and feature gaps
 
-- Receipt image persistence is not wired to Receipt.imageData.
+- Receipt image persistence is now wired for document scans (Receipt.imageData stores the first page); guided and live capture modes still do not save.
 - BankTransaction model exists but has no import, matching, or UI flow.
 - SpendingAnalytics is persisted as a model even though it behaves like derived data.
 

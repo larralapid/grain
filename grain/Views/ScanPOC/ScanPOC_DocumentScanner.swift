@@ -152,17 +152,51 @@ final class DocumentScanProcessor {
             return hasPrice && !isTotal
         }.count
     }
+
+    // MARK: - Persistence
+
+    /// Builds a `Receipt` (with line items) from the OCR text captured during this scan.
+    /// Reuses the canonical parser in `ReceiptScannerService` so parsing logic isn't forked,
+    /// then prefers the merchant/total shown on the proof sheet for consistency with the preview.
+    @MainActor
+    func makeReceipt(imageData: Data?) -> Receipt {
+        let receipt = ReceiptScannerService().parseReceiptFromText(ocrText)
+            ?? Receipt(date: .now, merchantName: "UNKNOWN", total: 0, subtotal: 0, tax: 0, ocrText: ocrText)
+
+        if !merchantName.isEmpty {
+            receipt.merchantName = merchantName
+        }
+        if let parsedTotal = Self.decimal(from: total) {
+            receipt.total = parsedTotal
+        }
+        receipt.imageData = imageData
+
+        // Set the inverse side so the relationship persists cleanly (mirrors DemoDataSeeder).
+        for item in receipt.items {
+            item.receipt = receipt
+        }
+        return receipt
+    }
+
+    /// Parses a display string like "$12.34" into a `Decimal`, ignoring currency symbols.
+    static func decimal(from displayString: String) -> Decimal? {
+        let digits = displayString.filter { $0.isNumber || $0 == "." }
+        return digits.isEmpty ? nil : Decimal(string: digits)
+    }
 }
 
 // MARK: - Document Scanner View
 
 struct ScanPOC_DocumentScanner: View {
+    @Environment(\.modelContext) private var modelContext
     @State private var isShowingScanner = false
     @State private var scannedPages: [UIImage] = []
     @State private var selectedPageIndex: Int = 0
     @State private var processor = DocumentScanProcessor()
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var showProofSheet = false
+    @State private var showSavedConfirmation = false
+    @State private var isSaving = false
 
     var body: some View {
         ZStack {
@@ -208,6 +242,11 @@ struct ScanPOC_DocumentScanner: View {
         } message: {
             Text(processor.errorMessage ?? "")
         }
+        .alert("Saved", isPresented: $showSavedConfirmation) {
+            Button("OK") { }
+        } message: {
+            Text("Receipt saved to your receipts.")
+        }
     }
 
     private var errorAlertIsPresented: Binding<Bool> {
@@ -219,6 +258,41 @@ struct ScanPOC_DocumentScanner: View {
                 }
             }
         )
+    }
+
+    // MARK: - Save
+
+    private func saveReceipt() {
+        let firstImage = scannedPages.first
+        let imageData = firstImage?.jpegData(compressionQuality: 0.7)
+        let ocrText = processor.ocrText
+        isSaving = true
+
+        Task {
+            // Pick the best extraction tier (Claude → on-device → regex) with graceful fallback.
+            let (source, extracted) = await ExtractorCoordinator.extract(image: firstImage, ocrText: ocrText)
+            let receipt = extracted.makeReceipt(imageData: imageData, source: source, ocrText: ocrText)
+
+            // Mirror the proven seeding pattern: insert the receipt and each line item.
+            modelContext.insert(receipt)
+            for item in receipt.items {
+                modelContext.insert(item)
+            }
+
+            do {
+                try modelContext.save()
+                // Reset back to the empty state and confirm.
+                scannedPages = []
+                selectedPageIndex = 0
+                showProofSheet = false
+                processor = DocumentScanProcessor()
+                isSaving = false
+                showSavedConfirmation = true
+            } catch {
+                isSaving = false
+                processor.errorMessage = "Couldn't save receipt: \(error.localizedDescription)"
+            }
+        }
     }
 
     // MARK: - Empty State
@@ -480,9 +554,9 @@ struct ScanPOC_DocumentScanner: View {
 
                 // Action buttons
                 Button {
-                    // TODO: save receipt
+                    saveReceipt()
                 } label: {
-                    Text("SAVE RECEIPT")
+                    Text(isSaving ? "SAVING\u{2026}" : "SAVE RECEIPT")
                         .font(GrainTheme.mono(12))
                         .tracking(1)
                         .foregroundColor(GrainTheme.textPrimary)
@@ -493,6 +567,7 @@ struct ScanPOC_DocumentScanner: View {
                                 .stroke(GrainTheme.border, lineWidth: 1)
                         )
                 }
+                .disabled(isSaving)
                 .padding(.top, 16)
 
                 Button("rescan") {

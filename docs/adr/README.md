@@ -20,6 +20,7 @@ Each ADR uses the lightweight format:
 * [ADR-0004](0004-swift-charts.md) - ADR-0004: Use Swift Charts for analytics visualization
 * [ADR-0005](0005-local-only-storage.md) - ADR-0005: Local-only storage; defer CloudKit sync
 * [ADR-0006](0006-launch-experience.md) - ADR-0006: Add Launch Experience to Mask Cold Start
+* [ADR-0007](0007-hybrid-ai-extraction.md) - ADR-0007: Hybrid AI receipt extraction (on-device default, opt-in Claude)
 
 <!-- adrlogstop -->
 

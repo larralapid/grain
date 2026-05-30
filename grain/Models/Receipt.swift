@@ -13,9 +13,14 @@ final class Receipt {
     var imageData: Data?
     var ocrText: String?
     var bankTransactionId: String?
-    var items: [ReceiptItem]
+    @Relationship(deleteRule: .cascade, inverse: \ReceiptItem.receipt) var items: [ReceiptItem]
     var category: String?
     var notes: String?
+    // Review / correction metadata (feeds the Flag → Review Queue flow + eval corpus).
+    var needsReview: Bool = false
+    var reviewReason: String?
+    var originalExtractionJSON: String?
+    var extractionSource: String?
     var createdAt: Date
     var updatedAt: Date
     

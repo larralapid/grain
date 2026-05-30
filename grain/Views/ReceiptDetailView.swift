@@ -7,6 +7,7 @@ struct ReceiptDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showingScanOverlay = false
     @State private var isEditing = false
+    @State private var showingSplitView = false
 
     var body: some View {
         ZStack {
@@ -43,8 +44,17 @@ struct ReceiptDetailView: View {
                     Button("view scan") {
                         showingScanOverlay = true
                     }
+                    Button("split view") {
+                        showingSplitView = true
+                    }
                     Button("edit receipt") {
                         isEditing = true
+                    }
+                    Button(receipt.needsReview ? "unflag" : "flag as incorrect") {
+                        receipt.needsReview.toggle()
+                        receipt.reviewReason = receipt.needsReview ? "user flagged" : nil
+                        receipt.updatedAt = Date()
+                        try? modelContext.save()
                     }
                     Button("delete", role: .destructive) {
                         modelContext.delete(receipt)
@@ -60,6 +70,9 @@ struct ReceiptDetailView: View {
         }
         .sheet(isPresented: $isEditing) {
             EditReceiptView(receipt: receipt)
+        }
+        .fullScreenCover(isPresented: $showingSplitView) {
+            ReceiptSplitView(receipt: receipt)
         }
     }
 
@@ -246,6 +259,10 @@ struct EditReceiptView: View {
     @State private var category: String
     @State private var notes: String
     @State private var date: Date
+    @State private var subtotal: Decimal
+    @State private var tax: Decimal
+    @State private var total: Decimal
+    @State private var drafts: [ItemDraft]
 
     init(receipt: Receipt) {
         self.receipt = receipt
@@ -254,6 +271,12 @@ struct EditReceiptView: View {
         self._category = State(initialValue: receipt.category ?? "")
         self._notes = State(initialValue: receipt.notes ?? "")
         self._date = State(initialValue: receipt.date)
+        self._subtotal = State(initialValue: receipt.subtotal)
+        self._tax = State(initialValue: receipt.tax)
+        self._total = State(initialValue: receipt.total)
+        self._drafts = State(initialValue: receipt.items.map {
+            ItemDraft(id: $0.id, name: $0.name, quantity: $0.quantity, unitPrice: $0.unitPrice, totalPrice: $0.totalPrice, existing: $0)
+        })
     }
 
     var body: some View {
@@ -263,6 +286,37 @@ struct EditReceiptView: View {
                     TextField("Merchant Name", text: $merchantName)
                     TextField("Merchant Address", text: $merchantAddress)
                     DatePicker("Date", selection: $date, displayedComponents: .date)
+                }
+
+                Section("Items") {
+                    ForEach($drafts) { $draft in
+                        VStack(alignment: .leading, spacing: 6) {
+                            TextField("Item name", text: $draft.name)
+                            Stepper("Qty \(draft.quantity)", value: $draft.quantity, in: 1...99)
+                            HStack {
+                                Text("unit").foregroundStyle(.secondary)
+                                TextField("0.00", value: $draft.unitPrice, format: .number)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                                Text("total").foregroundStyle(.secondary)
+                                TextField("0.00", value: $draft.totalPrice, format: .number)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                            .font(.footnote)
+                        }
+                    }
+                    .onDelete { drafts.remove(atOffsets: $0) }
+
+                    Button("add item") {
+                        drafts.append(ItemDraft(id: UUID(), name: "", quantity: 1, unitPrice: 0, totalPrice: 0, existing: nil))
+                    }
+                }
+
+                Section("Totals") {
+                    totalField("Subtotal", value: $subtotal)
+                    totalField("Tax", value: $tax)
+                    totalField("Total", value: $total)
                 }
 
                 Section("Categorization") {
@@ -287,12 +341,51 @@ struct EditReceiptView: View {
         }
     }
 
+    private func totalField(_ label: String, value: Binding<Decimal>) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            TextField("0.00", value: value, format: .number)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+        }
+    }
+
     private func saveChanges() {
         receipt.merchantName = merchantName
         receipt.merchantAddress = merchantAddress.isEmpty ? nil : merchantAddress
         receipt.category = category.isEmpty ? nil : category
         receipt.notes = notes.isEmpty ? nil : notes
         receipt.date = date
+        receipt.subtotal = subtotal
+        receipt.tax = tax
+        receipt.total = total
+
+        // Reconcile items: delete removed, update existing, insert newly-added.
+        let keptIDs = Set(drafts.compactMap { $0.existing?.id })
+        for item in receipt.items where !keptIDs.contains(item.id) {
+            modelContext.delete(item)
+        }
+        var rebuilt: [ReceiptItem] = []
+        for draft in drafts {
+            if let existing = draft.existing {
+                existing.name = draft.name
+                existing.quantity = draft.quantity
+                existing.unitPrice = draft.unitPrice
+                existing.totalPrice = draft.totalPrice
+                rebuilt.append(existing)
+            } else {
+                let item = ReceiptItem(name: draft.name, quantity: draft.quantity, unitPrice: draft.unitPrice, totalPrice: draft.totalPrice)
+                item.receipt = receipt
+                modelContext.insert(item)
+                rebuilt.append(item)
+            }
+        }
+        receipt.items = rebuilt
+
+        // Resolving a flag clears it but keeps originalExtractionJSON for the eval corpus.
+        receipt.needsReview = false
+        receipt.reviewReason = nil
         receipt.updatedAt = Date()
 
         do {
@@ -302,6 +395,15 @@ struct EditReceiptView: View {
             print("Error saving receipt: \(error)")
         }
     }
+}
+
+private struct ItemDraft: Identifiable {
+    let id: UUID
+    var name: String
+    var quantity: Int
+    var unitPrice: Decimal
+    var totalPrice: Decimal
+    var existing: ReceiptItem?
 }
 
 #Preview {

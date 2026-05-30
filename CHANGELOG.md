@@ -10,6 +10,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **AI receipt extraction (hybrid).** On-device Apple Intelligence (Foundation Models) extracts structured receipts by default — no key, no cost, fully private — with an opt-in tier that uses your own Anthropic Claude API key, and the regex parser as the universal fallback. See [ADR-0007](docs/adr/0007-hybrid-ai-extraction.md).
+- **Flag → Review Queue correction flow.** Flag a receipt as incorrect and correct any field — including totals and line items (previously read-only); the pre-correction extraction is captured to improve accuracy over time.
 - Notifications-based launch screen for returning users with recent activity cards and a fast handoff into the main app
 - GitHub Actions Build workflow (`build.yml`) that runs iOS simulator build and tests on pushes and pull requests to `main`
 
@@ -17,11 +19,16 @@ Versions follow [Semantic Versioning](https://semver.org/).
   <img src="screenshots/09-launch-screen.gif" alt="Notifications launch screen preview" width="280" />
 </p>
 
+### Fixed
+- **Scan → save now persists receipts.** The document scanner's `SAVE RECEIPT` button was an empty stub (`// TODO: save receipt`), so tapping it did nothing and no receipt was ever created. It now builds a `Receipt` — with parsed line items and the captured image — inserts it into SwiftData, shows a success confirmation, and surfaces a user-facing alert if the save fails.
+- **Receipt image is now persisted** to `Receipt.imageData` for document scans (first page, JPEG-encoded).
+- **Repaired the corrupted default Xcode scheme.** `grain.xcscheme` had malformed XML in its `LaunchAction` (a `BuildableReference` missing its `ReferencedContainer` attribute and the closing `>`), which made Xcode fail to load the scheme and display **"No Destinations"** — blocking all builds and device runs. Build/run destinations work again.
+
 ### Planned
 - Wire "+" toolbar button to manual receipt entry form
 - Wire "Edit" button on scan preview
-- Persist receipt image to `Receipt.imageData`
-- Replace silent `print()` error handling with user-facing alerts
+- Wire `SAVE` for the guided-capture and live-camera scan modes (document mode now saves)
+- Replace remaining silent `print()` error handling with user-facing alerts (analytics, detail edit)
 - Export Data (CSV / JSON)
 - Import Bank Transactions (OFX/QFX)
 - Tax Categories configuration
