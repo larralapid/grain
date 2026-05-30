@@ -74,4 +74,3 @@ Build the `grain` target in Xcode and run on an iOS 17+ simulator or device.
 </tr>
 </tbody></table>
 <!-- dashboard-end -->
-
