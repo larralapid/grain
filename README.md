@@ -2,14 +2,14 @@
 <table>
 <tr valign="top">
 
-<td width="35%" align="center">
+<td align="center">
 
 
 
 <br />
 
 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-  GRAIN  ·  receipt scanner + expense tracker for iOS                     
+  GRAIN · receipt scanner + expense tracker for iOS                     
 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
 
 
