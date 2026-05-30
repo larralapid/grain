@@ -41,11 +41,11 @@ struct ReceiptDetailView: View {
 
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
+                    Button("proof") {
+                        showingSplitView = true
+                    }
                     Button("view scan") {
                         showingScanOverlay = true
-                    }
-                    Button("split view") {
-                        showingSplitView = true
                     }
                     Button("edit receipt") {
                         isEditing = true
@@ -97,7 +97,17 @@ struct ReceiptDetailView: View {
                 .font(GrainTheme.mono(12))
                 .foregroundColor(GrainTheme.textSecondary)
                 .padding(.top, 2)
-                .padding(.bottom, 24)
+                .padding(.bottom, receipt.needsReview ? 0 : 24)
+
+            if receipt.needsReview {
+                Text("needs review")
+                    .font(GrainTheme.mono(10))
+                    .tracking(1.4)
+                    .textCase(.uppercase)
+                    .foregroundColor(GrainTheme.priceUp)
+                    .padding(.top, 8)
+                    .padding(.bottom, 24)
+            }
         }
     }
 
@@ -147,7 +157,7 @@ struct ReceiptDetailView: View {
                 .padding(.leading, 8)
         }
         .padding(.vertical, 10)
-        .background(isAlt ? Color.white.opacity(0.02) : Color.clear)
+        .background(isAlt ? GrainTheme.surface.opacity(0.5) : Color.clear)
     }
 
     private var totalsSection: some View {

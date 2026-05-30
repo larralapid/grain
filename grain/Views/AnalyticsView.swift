@@ -21,10 +21,10 @@ struct AnalyticsView: View {
                 // Sub-page dots
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(currentPage == 0 ? Color(white: 0.533) : Color(white: 0.2))
+                        .fill(currentPage == 0 ? GrainTheme.textSecondary : GrainTheme.dateHeader)
                         .frame(width: 5, height: 5)
                     Circle()
-                        .fill(currentPage == 1 ? Color(white: 0.533) : Color(white: 0.2))
+                        .fill(currentPage == 1 ? GrainTheme.textSecondary : GrainTheme.dateHeader)
                         .frame(width: 5, height: 5)
                 }
                 .padding(.top, 16)
@@ -54,7 +54,7 @@ struct AnalyticsView: View {
 
                 if let analytics = currentAnalytics {
                     Text(analytics.totalSpent.formatted(.currency(code: "USD")))
-                        .font(GrainTheme.mono(48, weight: .ultraLight))
+                        .font(GrainTheme.mono(48, weight: .regular))
                         .tracking(-2)
                         .foregroundColor(GrainTheme.textPrimary)
                         .padding(.top, 12)
@@ -66,7 +66,7 @@ struct AnalyticsView: View {
                         .padding(.top, 4)
                 } else {
                     Text("$0.00")
-                        .font(GrainTheme.mono(48, weight: .ultraLight))
+                        .font(GrainTheme.mono(48, weight: .regular))
                         .tracking(-2)
                         .foregroundColor(GrainTheme.textPrimary)
                         .padding(.top, 12)
@@ -93,7 +93,7 @@ struct AnalyticsView: View {
                     .font(GrainTheme.mono(9))
                     .tracking(1)
                     .textCase(.uppercase)
-                    .foregroundColor(Color(white: 0.2))
+                    .foregroundColor(GrainTheme.dateHeader)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 8)
                     .padding(.bottom, 40)
@@ -152,7 +152,7 @@ struct AnalyticsView: View {
                     .font(GrainTheme.mono(9))
                     .tracking(1)
                     .textCase(.uppercase)
-                    .foregroundColor(Color(white: 0.2))
+                    .foregroundColor(GrainTheme.dateHeader)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 8)
                     .padding(.bottom, 40)
@@ -184,7 +184,7 @@ struct AnalyticsView: View {
                 HStack(spacing: 4) {
                     Text(price)
                         .font(GrainTheme.mono(13))
-                        .foregroundColor(Color(white: 0.533))
+                        .foregroundColor(GrainTheme.textSecondary)
 
                     switch trend {
                     case .up:
@@ -286,7 +286,7 @@ struct AnalyticsView: View {
 
             Text(value)
                 .font(GrainTheme.mono(10))
-                .foregroundColor(Color(white: 0.4))
+                .foregroundColor(GrainTheme.textSecondary)
                 .frame(width: 44, alignment: .trailing)
                 .lineLimit(1)
                 .padding(.leading, 8)

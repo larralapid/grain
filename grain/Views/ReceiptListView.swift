@@ -78,7 +78,7 @@ struct ReceiptListView: View {
 
             HStack(alignment: .firstTextBaseline) {
                 Text(monthTotal.formatted(.currency(code: "USD")))
-                    .font(GrainTheme.mono(36, weight: .light))
+                    .font(GrainTheme.mono(36, weight: .regular))
                     .tracking(-1)
                     .foregroundColor(GrainTheme.textPrimary)
 
@@ -185,10 +185,12 @@ struct ReceiptListView: View {
                     ].filter { !$0.isEmpty }
 
                     Text(parts.joined(separator: " \u{00B7} "))
-                        .font(GrainTheme.mono(11))
-                        .tracking(0.2)
                         .foregroundColor(GrainTheme.textSecondary)
+                    + Text(receipt.needsReview ? " \u{00B7} needs review" : "")
+                        .foregroundColor(GrainTheme.priceUp)
                 }
+                .font(GrainTheme.mono(11))
+                .tracking(0.2)
             }
 
             Spacer()

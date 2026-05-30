@@ -8,6 +8,7 @@ The durable plan of record. Goal: a polished, working proof of concept that demo
 - **Bugs are logged AND fixed** (Bugs section below) — they take **priority over new features**. Don't ship around a bug.
 - **Clean architecture is a standing bar** — fix smells (Architecture section), don't accumulate them.
 - `OVERNIGHT_LOG.md` is the dated work journal; **this** file is the plan of record.
+- **Orchestration & quality gate:** every code item runs builder → independent review + build/test → commit only on green + clean (gate calibrated to risk: heavy for logic/data changes, light for UI tweaks). Read-only analyses (audit, design, coverage) run in parallel continuously. Genuinely independent items are parallelized in isolated worktrees; writers to the shared tree stay non-concurrent to avoid conflicts. Optimize for effective output, not raw agent count.
 
 ## Vision
 Receipts → structured, granular data (item + brand + price history) → insight (per-product / brand / merchant spend, cross-store price comparison). Private by default; improves with use via user corrections.
@@ -41,7 +42,7 @@ Receipts → structured, granular data (item + brand + price history) → insigh
 | B3 | Replace `print()` error-swallowing with user-facing alerts | quality | High | #58 | todo |
 | B4 | "Flagged for review" badge in ReceiptDetailView | correction | Med | review | todo |
 | B5 | AnalyticsService + parser regression tests | quality | Med | #58 | todo |
-| B6 | Targeted UI polish — designer plan Top 5 | design | High | #7 | in progress |
+| B6 | Targeted UI polish — designer plan Top 5 | design | High | #7 | done |
 | B7 | Pitch screenshots / demo capture | design | Med | demo | todo |
 | B8 | Attach sample images to seeded demo receipts | demo | Med | discovered | todo |
 | B9 | Info.plist `ITSAppUsesNonExemptEncryption = NO` | infra | Low | TestFlight | todo |
@@ -51,6 +52,7 @@ Receipts → structured, granular data (item + brand + price history) → insigh
 ## Bugs (log + fix — priority over features)
 _When a bug is found, log it here AND fix it._
 - **BUG-1 (suspected, high)** — Real scans likely populate only `Receipt` + `ReceiptItem`, not `Product` / `Brand` / `PricePoint`. Only `DemoDataSeeder` links those today, so the **product index + price history (the core granular feature) are empty for actually-scanned receipts**. Verify in `ExtractedReceipt.makeReceipt` / the scan-save path; if confirmed, fix by indexing products/brands/price-points on save (mirror `DemoDataSeeder` linking). Audit running to confirm.
+- **BUG-2 (high)** — `AnalyticsView` shows hardcoded placeholder copy ("MAR 2026", "+12% from feb…") and static `itemWatchPage` sample rows instead of real computed values (flagged by the polish builder). Displays fake data in a demo screen. Verify against `AnalyticsService` and wire to real output; remove placeholders.
 
 ## Architecture / cleanliness (standing bar)
 - **A1** `SpendingAnalytics` is a persisted `@Model` but is derived data → make it a plain `struct` returned by `AnalyticsService`.
@@ -76,6 +78,8 @@ Implementing the **Top 5** now (high-impact, low-risk, GrainTheme-consistent); t
 _Capture here; do not act out of scope. Promote to Backlog when prioritized._
 - CSV export regenerates the file on every Settings render (computed `exportCSVURL`) — generate on-demand/cache instead. Minor; fine at demo scale.
 - Mockup `screenshots/01-home.png` shows a top-right "filter" control not present in code (ghost affordance) — build it or drop it (designer M3).
+- Scan-overlay lightbox (ReceiptDetailView) uses raw scrim/white colors — consider a `GrainTheme.scrim` token rather than a blind swap (polish builder note).
+- Add a `ReceiptDetailView` #Preview with `needsReview = true` for visual QA of the flag marker.
 - Split view: let the first/last line center via half-viewport insets (review Med finding).
 - Split view: persist OCR line bounding boxes at scan time so the view needn't re-run Vision.
 - `SpendingAnalytics` is a persisted `@Model` but behaves like derived data → make it a plain `struct` (data-model hygiene).

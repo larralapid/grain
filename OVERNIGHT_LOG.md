@@ -31,3 +31,4 @@ Branch: `auto/overnight-2026-05-30` (off `main` @ `cc8b1d2`). Driver: Claude (Op
 - **process** — added `docs/ROADMAP.md` (plan of record + backlog + parking lot). Discoveries captured there, not acted on out of scope.
 - **B2 (done)** — CSV data export: `CSVExporter` (RFC-4180 escaping, locale-independent money/dates) + Settings `ShareLink` row. Build green.
 - **design plan (received)** — designer subagent returned a prioritized UI-polish plan; captured in ROADMAP. Implementing the **Top 5** next (contrast/hierarchy, flag marker, proof-view discoverability); rest parked.
+- **B6 (done)** — UI polish Top 5: hero-total weight, dark-mode contrast (textSecondary 0.48 / dateHeader 0.34), greys→tokens, `needs review` markers, "proof" promoted to first menu item. Build green. Logged BUG-2 (analytics placeholders) + scrim-token idea.
