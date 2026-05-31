@@ -212,6 +212,24 @@ struct ReceiptListView: View {
                 .font(GrainTheme.mono(12))
                 .foregroundColor(GrainTheme.dateHeader)
                 .multilineTextAlignment(.center)
+
+            Button {
+                showingManualEntry = true
+            } label: {
+                Text("+ ADD RECEIPT")
+                    .font(GrainTheme.mono(11, weight: .semibold))
+                    .tracking(0.8)
+                    .foregroundColor(GrainTheme.textPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .overlay(
+                        Rectangle()
+                            .stroke(GrainTheme.border, lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("add receipt manually")
+            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 80)

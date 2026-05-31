@@ -24,13 +24,13 @@ struct ManualReceiptEntryView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section("Basic Information") {
+                Section("basic information") {
                     TextField("Merchant Name", text: $merchantName)
                     TextField("Merchant Address", text: $merchantAddress)
                     DatePicker("Date", selection: $date, displayedComponents: .date)
                 }
 
-                Section("Items") {
+                Section("items") {
                     ForEach($drafts) { $draft in
                         VStack(alignment: .leading, spacing: 6) {
                             TextField("Item name", text: $draft.name)
@@ -55,29 +55,31 @@ struct ManualReceiptEntryView: View {
                     }
                 }
 
-                Section("Totals") {
+                Section("totals") {
                     totalField("Subtotal", value: $subtotal)
                     totalField("Tax", value: $tax)
                     totalField("Total", value: $total)
                 }
 
-                Section("Categorization") {
+                Section("categorization") {
                     TextField("Category", text: $category)
                 }
 
-                Section("Notes") {
+                Section("notes") {
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(3...6)
                 }
             }
-            .navigationTitle("New Receipt")
+            .tint(GrainTheme.accent)
+            .fontDesign(.monospaced)
+            .navigationTitle("new receipt")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
+                    Button("cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") { save() }
+                    Button("save") { save() }
                         .disabled(!canSave)
                 }
             }

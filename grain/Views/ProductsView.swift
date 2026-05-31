@@ -220,11 +220,26 @@ struct ProductsView: View {
     }
 
     private func emptyContent(_ message: String) -> some View {
-        Text(message)
-            .font(GrainTheme.mono(12))
-            .foregroundColor(GrainTheme.textSecondary)
-            .frame(maxWidth: .infinity)
-            .padding(.top, 40)
+        VStack(spacing: 14) {
+            Text(message)
+                .font(GrainTheme.mono(12))
+                .foregroundColor(GrainTheme.textSecondary)
+
+            Text("scan a receipt from the scan tab to build your index")
+                .font(GrainTheme.mono(11))
+                .foregroundColor(GrainTheme.dateHeader)
+                .tracking(0.2)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .padding(.horizontal, 16)
+                .overlay(
+                    Rectangle()
+                        .stroke(GrainTheme.border, lineWidth: 1)
+                )
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 40)
     }
 
     // MARK: - Data helpers
