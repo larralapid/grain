@@ -122,35 +122,13 @@ final class DocumentScanProcessor {
     }
 
     private func parseBasicFields(from text: String) {
-        let lines = text.components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-
-        // First non-empty, non-numeric line as merchant
-        merchantName = lines.first(where: { line in
-            !line.contains("$") && !line.contains("TOTAL") && !line.allSatisfy(\.isNumber)
-        }) ?? "UNKNOWN"
-
-        // Find total
-        for line in lines {
-            if line.uppercased().contains("TOTAL") && !line.uppercased().contains("SUB") {
-                let pattern = #"\$?(\d+\.\d{2})"#
-                if let regex = try? NSRegularExpression(pattern: pattern),
-                   let match = regex.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)),
-                   let range = Range(match.range(at: 0), in: line) {
-                    total = String(line[range])
-                }
-            }
-        }
-
-        // Count lines with prices as rough item count
-        let pricePattern = #"\$?\d+\.\d{2}"#
-        let priceRegex = try? NSRegularExpression(pattern: pricePattern)
-        itemCount = lines.filter { line in
-            let isTotal = line.uppercased().contains("TOTAL") || line.uppercased().contains("TAX") || line.uppercased().contains("CHANGE")
-            let hasPrice = (priceRegex?.firstMatch(in: line, range: NSRange(line.startIndex..., in: line))) != nil
-            return hasPrice && !isTotal
-        }.count
+        // Reuse the canonical `RegexReceiptParser` (A8) so the proof preview reflects exactly what
+        // the app will save, instead of a divergent second copy of the total/price regex.
+        let parsed = RegexReceiptParser.parse(text)
+        merchantName = parsed.merchantName == "Unknown Merchant" ? "UNKNOWN" : parsed.merchantName
+        // Locale-independent ("." decimal, no grouping) so the save-time `parseDecimal` reads it back.
+        total = parsed.total > 0 ? String(format: "$%.2f", (parsed.total as NSDecimalNumber).doubleValue) : ""
+        itemCount = parsed.items.count
     }
 }
 

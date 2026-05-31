@@ -40,28 +40,26 @@ enum ExtractionSource: String {
 /// works offline, and never leaves the device.
 struct RegexReceiptExtractor: ReceiptExtractor {
     func extract(image: UIImage?, ocrText: String) async throws -> ExtractedReceipt {
-        // `ReceiptScannerService` is @MainActor; build + parse on the main actor, then map
-        // the (detached) Receipt into the plain value type.
-        await MainActor.run {
-            let parsed = ReceiptScannerService().parseReceiptFromText(ocrText)
-            return ExtractedReceipt(
-                merchantName: parsed?.merchantName ?? "UNKNOWN",
-                merchantAddress: parsed?.merchantAddress,
-                date: parsed?.date,
-                subtotal: parsed?.subtotal ?? 0,
-                tax: parsed?.tax ?? 0,
-                total: parsed?.total ?? 0,
-                items: (parsed?.items ?? []).map { item in
-                    ExtractedItem(
-                        name: item.name,
-                        quantity: item.quantity,
-                        unitPrice: item.unitPrice,
-                        totalPrice: item.totalPrice,
-                        brand: item.brand,
-                        category: item.category
-                    )
-                }
-            )
-        }
+        // Pure regex parse via the shared `RegexReceiptParser` — no main-actor hop and no
+        // `@MainActor` service to instantiate (A9). Map the (detached) Receipt into the value type.
+        let parsed = RegexReceiptParser.parse(ocrText)
+        return ExtractedReceipt(
+            merchantName: parsed.merchantName,
+            merchantAddress: parsed.merchantAddress,
+            date: parsed.date,
+            subtotal: parsed.subtotal,
+            tax: parsed.tax,
+            total: parsed.total,
+            items: parsed.items.map { item in
+                ExtractedItem(
+                    name: item.name,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    totalPrice: item.totalPrice,
+                    brand: item.brand,
+                    category: item.category
+                )
+            }
+        )
     }
 }
