@@ -55,8 +55,8 @@ _When a bug is found, log it here AND fix it._
 - **BUG-2 (FIXED)** — `AnalyticsView` now shows the real current month, a real month-over-month % change, and Item Watch driven by actual `Product` price history (`@Query` + `PricePoint`s). Hardcoded "MAR 2026" / "+12%" / sample rows removed; empty state added.
 - **BUG-3 (FIXED)** — Scan save now prefers the proof-sheet `processor.total`/`merchantName` when the extractor returns empty/zero, preventing `$0.00`/UNKNOWN saves on regex fallback. Dead `DocumentScanProcessor.makeReceipt`/`decimal(from:)` removed.
 - **BUG-4 (med)** — `AnalyticsService` merchant breakdown sums `receipt.total` (incl. tax) while category/brand sum `item.totalPrice` (pre-tax, excludes unparsed-item receipts) → inconsistent totals; `brandBreakdown` keys off free-text `item.brand`, not the `Brand` model. Unify after indexing lands.
-- **BUG-5 (med)** — Regex parser substring bugs: `contains("TOTAL")` also matches `SUBTOTAL`; `contains("TAX")` matches `TAXI`/`GALAXY` → misclassified amounts (`ReceiptScannerService`). Add word-boundary/order checks.
-- **BUG-6 (low)** — `CSVExporter.isoDate` uses `timeZone: .current`, contradicting its tz-independent doc — use UTC.
+- **BUG-5 (FIXED)** — Regex parser now checks SUBTOTAL before TOTAL and matches `\bTAX\b` on a word boundary, so `SUBTOTAL`/`TAXI`/`GALAXY` no longer misclassify amounts.
+- **BUG-6 (FIXED)** — `CSVExporter.isoDate` now uses UTC, matching its tz-independent contract.
 - **BUG-7 (med)** — Deleting a `ReceiptItem` in `EditReceiptView` leaves its `PricePoint` orphaned and `Brand.totalSpent`/`transactionCount` stale (never decremented). Needs cleanup-on-delete + proper cascade (ties to A6). Found by the indexing builder.
 - _Investigated, NOT a bug:_ audit claimed the Claude key is never persisted — false positive; `SettingsView.aiSection` calls `AIConfig.setClaudeAPIKey` in the key field's `.onChange`.
 

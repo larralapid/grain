@@ -68,19 +68,18 @@ class ReceiptScannerService: ObservableObject {
                 merchantName = cleanLine
             }
             
-            if cleanLine.uppercased().contains("TOTAL") {
-                if let amount = extractAmount(from: cleanLine) {
-                    total = amount
-                }
-            }
-            
-            if cleanLine.uppercased().contains("SUBTOTAL") {
+            // Check SUBTOTAL before TOTAL (TOTAL is a substring of SUBTOTAL), and match
+            // TAX on a word boundary so "TAXI"/"GALAXY" don't register as tax lines.
+            let upperLine = cleanLine.uppercased()
+            if upperLine.contains("SUBTOTAL") {
                 if let amount = extractAmount(from: cleanLine) {
                     subtotal = amount
                 }
-            }
-            
-            if cleanLine.uppercased().contains("TAX") {
+            } else if upperLine.contains("TOTAL") {
+                if let amount = extractAmount(from: cleanLine) {
+                    total = amount
+                }
+            } else if upperLine.range(of: #"\bTAX\b"#, options: .regularExpression) != nil {
                 if let amount = extractAmount(from: cleanLine) {
                     tax = amount
                 }

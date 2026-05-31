@@ -131,7 +131,7 @@ enum CSVExporter {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd"
-        formatter.timeZone = .current
+        formatter.timeZone = TimeZone(identifier: "UTC")
         return formatter
     }()
 }
