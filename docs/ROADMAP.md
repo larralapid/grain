@@ -67,7 +67,7 @@ _When a bug is found, log it here AND fix it._
 - **A4** O(n) analytics aggregation + per-render recompute (`ReceiptListView.groupedReceipts`, `ItemAnalyticsView`) → cache / SwiftData predicate.
 - **A5** Dead code: `DocumentScanProcessor.makeReceipt` + `decimal(from:)` in `ScanPOC_DocumentScanner` are superseded by `ExtractorCoordinator` — remove (folding into the BUG-3 fix).
 - **A6** SwiftData relationships missing inverses/delete rules on `Product.priceHistory`, `Brand.products`, `PricePoint.*`, `ReceiptItem.product`, `BankTransaction.receipt` → orphans. Declare carefully (schema change → launch-test, likely needs A10).
-- **A7** `KeychainStore` ignores `SecItem*` status codes + doesn't set `kSecAttrAccessible` — silent write failures. Add status checks + `kSecAttrAccessibleAfterFirstUnlock`.
+- **A7 (FIXED)** — `KeychainStore.set`/`delete` now check `SecItem*` `OSStatus` and return `Bool`, and set `kSecAttrAccessibleAfterFirstUnlock` on write. `AIConfig.setClaudeAPIKey` propagates the result; Settings shows an inline "couldn't save the key" note on failure instead of dropping it silently.
 - **A8** `DocumentScanProcessor.parseBasicFields` is a 3rd copy of the total-regex parser — dedupe against `RegexReceiptExtractor`.
 - **A9** `ReceiptScannerService` is class-level `@MainActor` (Vision on main; forces `RegexReceiptExtractor` into `MainActor.run`). Make parse methods `static`/`nonisolated`; scope `@MainActor` to the `@Published` surface.
 - **A10** No `VersionedSchema`/migration plan (`grainApp` uses a bare `Schema`) — introduce before the A6 relationship changes and before real user data.

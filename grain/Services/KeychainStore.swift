@@ -6,10 +6,12 @@ import Security
 enum KeychainStore {
     private static let service = "com.grain.ai"
 
-    static func set(_ value: String?, for account: String) {
+    /// Stores (or, for an empty value, deletes) the secret. Returns `true` on success so callers
+    /// can tell the user if the key didn't persist, instead of failing silently.
+    @discardableResult
+    static func set(_ value: String?, for account: String) -> Bool {
         guard let value, !value.isEmpty else {
-            delete(account)
-            return
+            return delete(account)
         }
         let data = Data(value.utf8)
         let query: [String: Any] = [
@@ -17,12 +19,19 @@ enum KeychainStore {
             kSecAttrService as String: service,
             kSecAttrAccount as String: account
         ]
+        // `AfterFirstUnlock` keeps the key readable for background work after the first unlock
+        // post-boot, while still protecting it before the device is ever unlocked.
         if SecItemCopyMatching(query as CFDictionary, nil) == errSecSuccess {
-            SecItemUpdate(query as CFDictionary, [kSecValueData as String: data] as CFDictionary)
+            let attributes: [String: Any] = [
+                kSecValueData as String: data,
+                kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+            ]
+            return SecItemUpdate(query as CFDictionary, attributes as CFDictionary) == errSecSuccess
         } else {
             var insert = query
             insert[kSecValueData as String] = data
-            SecItemAdd(insert as CFDictionary, nil)
+            insert[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            return SecItemAdd(insert as CFDictionary, nil) == errSecSuccess
         }
     }
 
@@ -43,13 +52,16 @@ enum KeychainStore {
         return value
     }
 
-    static func delete(_ account: String) {
+    @discardableResult
+    static func delete(_ account: String) -> Bool {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account
         ]
-        SecItemDelete(query as CFDictionary)
+        let status = SecItemDelete(query as CFDictionary)
+        // Deleting a key that was never stored is still "no key present" — treat as success.
+        return status == errSecSuccess || status == errSecItemNotFound
     }
 }
 
@@ -75,7 +87,8 @@ enum AIConfig {
 
     static var claudeAPIKey: String? { KeychainStore.get(apiKeyAccount) }
 
-    static func setClaudeAPIKey(_ value: String?) { KeychainStore.set(value, for: apiKeyAccount) }
+    @discardableResult
+    static func setClaudeAPIKey(_ value: String?) -> Bool { KeychainStore.set(value, for: apiKeyAccount) }
 
     static var hasClaudeKey: Bool { !(claudeAPIKey ?? "").isEmpty }
 }

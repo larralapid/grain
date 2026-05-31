@@ -8,6 +8,7 @@ struct SettingsView: View {
     @AppStorage("ai.enabled") private var aiEnabled = true
     @AppStorage("ai.claude.enabled") private var claudeEnabled = false
     @State private var apiKeyInput = ""
+    @State private var keychainSaveFailed = false
     @State private var showingReviewQueue = false
 
     var body: some View {
@@ -173,12 +174,18 @@ struct SettingsView: View {
                     .padding(10)
                     .overlay(Rectangle().stroke(GrainTheme.border, lineWidth: 1))
                     .onChange(of: apiKeyInput) { _, newValue in
-                        AIConfig.setClaudeAPIKey(newValue)
+                        keychainSaveFailed = !AIConfig.setClaudeAPIKey(newValue)
                     }
 
-                Text("stored only in your device Keychain \u{00B7} never in the app bundle")
-                    .font(GrainTheme.mono(9))
-                    .foregroundColor(GrainTheme.textSecondary)
+                if keychainSaveFailed {
+                    Text("couldn\u{2019}t save the key to the Keychain \u{2014} try again")
+                        .font(GrainTheme.mono(9))
+                        .foregroundColor(GrainTheme.priceUp)
+                } else {
+                    Text("stored only in your device Keychain \u{00B7} never in the app bundle")
+                        .font(GrainTheme.mono(9))
+                        .foregroundColor(GrainTheme.textSecondary)
+                }
             }
         }
         .padding(.vertical, 20)
