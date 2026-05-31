@@ -122,47 +122,28 @@ final class DocumentScanProcessor {
     }
 
     private func parseBasicFields(from text: String) {
-        let lines = text.components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-
-        // First non-empty, non-numeric line as merchant
-        merchantName = lines.first(where: { line in
-            !line.contains("$") && !line.contains("TOTAL") && !line.allSatisfy(\.isNumber)
-        }) ?? "UNKNOWN"
-
-        // Find total
-        for line in lines {
-            if line.uppercased().contains("TOTAL") && !line.uppercased().contains("SUB") {
-                let pattern = #"\$?(\d+\.\d{2})"#
-                if let regex = try? NSRegularExpression(pattern: pattern),
-                   let match = regex.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)),
-                   let range = Range(match.range(at: 0), in: line) {
-                    total = String(line[range])
-                }
-            }
-        }
-
-        // Count lines with prices as rough item count
-        let pricePattern = #"\$?\d+\.\d{2}"#
-        let priceRegex = try? NSRegularExpression(pattern: pricePattern)
-        itemCount = lines.filter { line in
-            let isTotal = line.uppercased().contains("TOTAL") || line.uppercased().contains("TAX") || line.uppercased().contains("CHANGE")
-            let hasPrice = (priceRegex?.firstMatch(in: line, range: NSRange(line.startIndex..., in: line))) != nil
-            return hasPrice && !isTotal
-        }.count
+        // Reuse the canonical `RegexReceiptParser` (A8) so the proof preview reflects exactly what
+        // the app will save, instead of a divergent second copy of the total/price regex.
+        let parsed = RegexReceiptParser.parse(text)
+        merchantName = parsed.merchantName == "Unknown Merchant" ? "UNKNOWN" : parsed.merchantName
+        // Locale-independent ("." decimal, no grouping) so the save-time `parseDecimal` reads it back.
+        total = parsed.total > 0 ? String(format: "$%.2f", (parsed.total as NSDecimalNumber).doubleValue) : ""
+        itemCount = parsed.items.count
     }
 }
 
 // MARK: - Document Scanner View
 
 struct ScanPOC_DocumentScanner: View {
+    @Environment(\.modelContext) private var modelContext
     @State private var isShowingScanner = false
     @State private var scannedPages: [UIImage] = []
     @State private var selectedPageIndex: Int = 0
     @State private var processor = DocumentScanProcessor()
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var showProofSheet = false
+    @State private var showSavedConfirmation = false
+    @State private var isSaving = false
 
     var body: some View {
         ZStack {
@@ -208,6 +189,11 @@ struct ScanPOC_DocumentScanner: View {
         } message: {
             Text(processor.errorMessage ?? "")
         }
+        .alert("Saved", isPresented: $showSavedConfirmation) {
+            Button("OK") { }
+        } message: {
+            Text("Receipt saved to your receipts.")
+        }
     }
 
     private var errorAlertIsPresented: Binding<Bool> {
@@ -219,6 +205,63 @@ struct ScanPOC_DocumentScanner: View {
                 }
             }
         )
+    }
+
+    // MARK: - Save
+
+    private func saveReceipt() {
+        let firstImage = scannedPages.first
+        let imageData = firstImage?.jpegData(compressionQuality: 0.7)
+        let ocrText = processor.ocrText
+        isSaving = true
+
+        let proofMerchant = processor.merchantName
+        let proofTotal = processor.total
+
+        Task {
+            // Pick the best extraction tier (Claude → on-device → regex) with graceful fallback.
+            let (source, extracted) = await ExtractorCoordinator.extract(image: firstImage, ocrText: ocrText)
+            let receipt = extracted.makeReceipt(imageData: imageData, source: source, ocrText: ocrText)
+
+            // Fall back to the proof-sheet values when the extractor missed them: this avoids
+            // saving "UNKNOWN" / $0.00 when the regex fallback can't find the merchant or TOTAL line.
+            if receipt.merchantName.isEmpty || receipt.merchantName == "UNKNOWN",
+               !proofMerchant.isEmpty, proofMerchant != "UNKNOWN" {
+                receipt.merchantName = proofMerchant
+            }
+            if receipt.total == 0, let parsedTotal = parseDecimal(from: proofTotal) {
+                receipt.total = parsedTotal
+            }
+
+            // Mirror the proven seeding pattern: insert the receipt and each line item.
+            modelContext.insert(receipt)
+            for item in receipt.items {
+                modelContext.insert(item)
+            }
+
+            // Populate the product index (Product / Brand / PricePoint) from the saved items.
+            ProductIndexer.index(receipt, in: modelContext)
+
+            do {
+                try modelContext.save()
+                // Reset back to the empty state and confirm.
+                scannedPages = []
+                selectedPageIndex = 0
+                showProofSheet = false
+                processor = DocumentScanProcessor()
+                isSaving = false
+                showSavedConfirmation = true
+            } catch {
+                isSaving = false
+                processor.errorMessage = "Couldn't save receipt: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    /// Parses a display string like "$12.34" into a `Decimal`, ignoring currency symbols.
+    private func parseDecimal(from displayString: String) -> Decimal? {
+        let digits = displayString.filter { $0.isNumber || $0 == "." }
+        return digits.isEmpty ? nil : Decimal(string: digits)
     }
 
     // MARK: - Empty State
@@ -480,9 +523,9 @@ struct ScanPOC_DocumentScanner: View {
 
                 // Action buttons
                 Button {
-                    // TODO: save receipt
+                    saveReceipt()
                 } label: {
-                    Text("SAVE RECEIPT")
+                    Text(isSaving ? "SAVING\u{2026}" : "SAVE RECEIPT")
                         .font(GrainTheme.mono(12))
                         .tracking(1)
                         .foregroundColor(GrainTheme.textPrimary)
@@ -493,6 +536,7 @@ struct ScanPOC_DocumentScanner: View {
                                 .stroke(GrainTheme.border, lineWidth: 1)
                         )
                 }
+                .disabled(isSaving)
                 .padding(.top, 16)
 
                 Button("rescan") {

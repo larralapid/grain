@@ -27,6 +27,7 @@
 		C1EA4BEA2E24D0D00072722C /* grain.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = grain.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1EA4BFB2E24D0D20072722C /* grainTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = grainTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1EA4C052E24D0D20072722C /* grainUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = grainUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1EA4CDC2E24D0D20072722C /* docs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = docs; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -91,6 +92,7 @@
 				C1EA4BEC2E24D0D00072722C /* grain */,
 				C1EA4BFE2E24D0D20072722C /* grainTests */,
 				C1EA4C082E24D0D20072722C /* grainUITests */,
+				C1EA4CDC2E24D0D20072722C /* docs */,
 				C1EA4BEB2E24D0D00072722C /* Products */,
 			);
 			sourceTree = "<group>";

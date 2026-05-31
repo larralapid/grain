@@ -7,6 +7,7 @@ struct ReceiptDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showingScanOverlay = false
     @State private var isEditing = false
+    @State private var showingSplitView = false
 
     var body: some View {
         ZStack {
@@ -40,13 +41,23 @@ struct ReceiptDetailView: View {
 
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
+                    Button("proof") {
+                        showingSplitView = true
+                    }
                     Button("view scan") {
                         showingScanOverlay = true
                     }
                     Button("edit receipt") {
                         isEditing = true
                     }
+                    Button(receipt.needsReview ? "unflag" : "flag as incorrect") {
+                        receipt.needsReview.toggle()
+                        receipt.reviewReason = receipt.needsReview ? "user flagged" : nil
+                        receipt.updatedAt = Date()
+                        try? modelContext.save()
+                    }
                     Button("delete", role: .destructive) {
+                        ProductIndexer.deindex(receipt, in: modelContext)
                         modelContext.delete(receipt)
                         dismiss()
                     }
@@ -60,6 +71,9 @@ struct ReceiptDetailView: View {
         }
         .sheet(isPresented: $isEditing) {
             EditReceiptView(receipt: receipt)
+        }
+        .fullScreenCover(isPresented: $showingSplitView) {
+            ReceiptSplitView(receipt: receipt)
         }
     }
 
@@ -84,7 +98,17 @@ struct ReceiptDetailView: View {
                 .font(GrainTheme.mono(12))
                 .foregroundColor(GrainTheme.textSecondary)
                 .padding(.top, 2)
-                .padding(.bottom, 24)
+                .padding(.bottom, receipt.needsReview ? 0 : 24)
+
+            if receipt.needsReview {
+                Text("needs review")
+                    .font(GrainTheme.mono(10))
+                    .tracking(1.4)
+                    .textCase(.uppercase)
+                    .foregroundColor(GrainTheme.priceUp)
+                    .padding(.top, 8)
+                    .padding(.bottom, 24)
+            }
         }
     }
 
@@ -134,7 +158,7 @@ struct ReceiptDetailView: View {
                 .padding(.leading, 8)
         }
         .padding(.vertical, 10)
-        .background(isAlt ? Color.white.opacity(0.02) : Color.clear)
+        .background(isAlt ? GrainTheme.surface.opacity(0.5) : Color.clear)
     }
 
     private var totalsSection: some View {
@@ -246,6 +270,11 @@ struct EditReceiptView: View {
     @State private var category: String
     @State private var notes: String
     @State private var date: Date
+    @State private var subtotal: Decimal
+    @State private var tax: Decimal
+    @State private var total: Decimal
+    @State private var drafts: [ItemDraft]
+    @State private var saveError: String?
 
     init(receipt: Receipt) {
         self.receipt = receipt
@@ -254,36 +283,100 @@ struct EditReceiptView: View {
         self._category = State(initialValue: receipt.category ?? "")
         self._notes = State(initialValue: receipt.notes ?? "")
         self._date = State(initialValue: receipt.date)
+        self._subtotal = State(initialValue: receipt.subtotal)
+        self._tax = State(initialValue: receipt.tax)
+        self._total = State(initialValue: receipt.total)
+        self._drafts = State(initialValue: receipt.items.map {
+            ItemDraft(id: $0.id, name: $0.name, quantity: $0.quantity, unitPrice: $0.unitPrice, totalPrice: $0.totalPrice, brand: $0.brand ?? "", category: $0.category ?? "", existing: $0)
+        })
     }
 
     var body: some View {
         NavigationView {
             Form {
-                Section("Basic Information") {
+                Section("basic information") {
                     TextField("Merchant Name", text: $merchantName)
                     TextField("Merchant Address", text: $merchantAddress)
                     DatePicker("Date", selection: $date, displayedComponents: .date)
                 }
 
-                Section("Categorization") {
+                Section("items") {
+                    ForEach($drafts) { $draft in
+                        VStack(alignment: .leading, spacing: 6) {
+                            TextField("Item name", text: $draft.name)
+                            HStack {
+                                TextField("Brand", text: $draft.brand)
+                                TextField("Category", text: $draft.category)
+                            }
+                            .font(.footnote)
+                            Stepper("Qty \(draft.quantity)", value: $draft.quantity, in: 1...99)
+                            HStack {
+                                Text("unit").foregroundStyle(.secondary)
+                                TextField("0.00", value: $draft.unitPrice, format: .number)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                                Text("total").foregroundStyle(.secondary)
+                                TextField("0.00", value: $draft.totalPrice, format: .number)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                            .font(.footnote)
+                        }
+                    }
+                    .onDelete { drafts.remove(atOffsets: $0) }
+
+                    Button("add item") {
+                        drafts.append(ItemDraft(id: UUID(), name: "", quantity: 1, unitPrice: 0, totalPrice: 0, existing: nil))
+                    }
+                }
+
+                Section("totals") {
+                    totalField("Subtotal", value: $subtotal)
+                    totalField("Tax", value: $tax)
+                    totalField("Total", value: $total)
+                }
+
+                Section("categorization") {
                     TextField("Category", text: $category)
                 }
 
-                Section("Notes") {
+                Section("notes") {
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(3...6)
                 }
             }
-            .navigationTitle("Edit Receipt")
+            .tint(GrainTheme.accent)
+            .fontDesign(.monospaced)
+            .navigationTitle("edit receipt")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
+                    Button("cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") { saveChanges() }
+                    Button("save") { saveChanges() }
                 }
             }
+            .alert("couldn't save changes", isPresented: saveErrorBinding) {
+                Button("ok", role: .cancel) { saveError = nil }
+            } message: {
+                Text(saveError ?? "")
+            }
+        }
+    }
+
+    /// Drives the save-failure alert off the optional error message.
+    private var saveErrorBinding: Binding<Bool> {
+        Binding(get: { saveError != nil }, set: { if !$0 { saveError = nil } })
+    }
+
+    private func totalField(_ label: String, value: Binding<Decimal>) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            TextField("0.00", value: value, format: .number)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
         }
     }
 
@@ -293,15 +386,80 @@ struct EditReceiptView: View {
         receipt.category = category.isEmpty ? nil : category
         receipt.notes = notes.isEmpty ? nil : notes
         receipt.date = date
+        receipt.subtotal = subtotal
+        receipt.tax = tax
+        receipt.total = total
+
+        // Reconcile items: delete removed, update existing, insert newly-added.
+        let keptIDs = Set(drafts.compactMap { $0.existing?.id })
+        for item in receipt.items where !keptIDs.contains(item.id) {
+            ProductIndexer.deindex(item, in: modelContext)
+            modelContext.delete(item)
+        }
+        var rebuilt: [ReceiptItem] = []
+        for draft in drafts {
+            let brand = draft.brand.trimmingCharacters(in: .whitespaces)
+            let category = draft.category.trimmingCharacters(in: .whitespaces)
+            if let existing = draft.existing {
+                // If any indexed field changed, roll back the old index contribution and clear the
+                // product link first, so the re-index below re-resolves the product (handles
+                // renames) and records the new price. Without this, edits to an already-indexed
+                // item leave its PricePoint / Brand totals stale — silent drift from the receipt.
+                let changed = existing.name != draft.name
+                    || existing.quantity != draft.quantity
+                    || existing.unitPrice != draft.unitPrice
+                    || existing.totalPrice != draft.totalPrice
+                    || (existing.brand ?? "") != brand
+                    || (existing.category ?? "") != category
+                if changed {
+                    ProductIndexer.deindex(existing, in: modelContext)
+                }
+                existing.name = draft.name
+                existing.quantity = draft.quantity
+                existing.unitPrice = draft.unitPrice
+                existing.totalPrice = draft.totalPrice
+                existing.brand = brand.isEmpty ? nil : brand
+                existing.category = category.isEmpty ? nil : category
+                existing.updatedAt = Date()
+                rebuilt.append(existing)
+            } else {
+                let item = ReceiptItem(name: draft.name, brand: brand.isEmpty ? nil : brand, category: category.isEmpty ? nil : category, quantity: draft.quantity, unitPrice: draft.unitPrice, totalPrice: draft.totalPrice)
+                item.receipt = receipt
+                modelContext.insert(item)
+                rebuilt.append(item)
+            }
+        }
+        receipt.items = rebuilt
+
+        // Index added items and re-index any edited items that were de-indexed above (both now
+        // have `product == nil`). Unchanged items keep their product and are skipped, so there's
+        // no churn — and price history / Brand totals track the edits.
+        ProductIndexer.index(receipt, in: modelContext)
+
+        // Resolving a flag clears it but keeps originalExtractionJSON for the eval corpus.
+        receipt.needsReview = false
+        receipt.reviewReason = nil
         receipt.updatedAt = Date()
 
         do {
             try modelContext.save()
             dismiss()
         } catch {
-            print("Error saving receipt: \(error)")
+            // Keep the editor open so the user's edits aren't lost; surface the failure.
+            saveError = error.localizedDescription
         }
     }
+}
+
+private struct ItemDraft: Identifiable {
+    let id: UUID
+    var name: String
+    var quantity: Int
+    var unitPrice: Decimal
+    var totalPrice: Decimal
+    var brand: String = ""
+    var category: String = ""
+    var existing: ReceiptItem?
 }
 
 #Preview {

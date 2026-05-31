@@ -8,6 +8,8 @@ struct AnalyticsView: View {
     @State private var currentAnalytics: SpendingAnalytics?
     @State private var isLoading = false
     @State private var currentPage = 0
+    @State private var monthChange: Double?
+    @Query private var products: [Product]
 
     init(modelContext: ModelContext) {
         self._analyticsService = StateObject(wrappedValue: AnalyticsService(modelContext: modelContext))
@@ -21,10 +23,10 @@ struct AnalyticsView: View {
                 // Sub-page dots
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(currentPage == 0 ? Color(white: 0.533) : Color(white: 0.2))
+                        .fill(currentPage == 0 ? GrainTheme.textSecondary : GrainTheme.dateHeader)
                         .frame(width: 5, height: 5)
                     Circle()
-                        .fill(currentPage == 1 ? Color(white: 0.533) : Color(white: 0.2))
+                        .fill(currentPage == 1 ? GrainTheme.textSecondary : GrainTheme.dateHeader)
                         .frame(width: 5, height: 5)
                 }
                 .padding(.top, 16)
@@ -46,7 +48,7 @@ struct AnalyticsView: View {
     private var spendingPage: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("MAR 2026")
+                Text(monthLabel)
                     .font(GrainTheme.mono(12))
                     .tracking(1)
                     .foregroundColor(GrainTheme.textSecondary)
@@ -54,19 +56,19 @@ struct AnalyticsView: View {
 
                 if let analytics = currentAnalytics {
                     Text(analytics.totalSpent.formatted(.currency(code: "USD")))
-                        .font(GrainTheme.mono(48, weight: .ultraLight))
+                        .font(GrainTheme.mono(48, weight: .regular))
                         .tracking(-2)
                         .foregroundColor(GrainTheme.textPrimary)
                         .padding(.top, 12)
 
-                    Text("+12% from feb. \(analytics.topMerchants.prefix(2).joined(separator: ", ").lowercased()). dining flat.")
+                    Text(spendingSummary(analytics))
                         .font(GrainTheme.mono(11))
                         .foregroundColor(GrainTheme.textSecondary)
                         .lineSpacing(4)
                         .padding(.top, 4)
                 } else {
                     Text("$0.00")
-                        .font(GrainTheme.mono(48, weight: .ultraLight))
+                        .font(GrainTheme.mono(48, weight: .regular))
                         .tracking(-2)
                         .foregroundColor(GrainTheme.textPrimary)
                         .padding(.top, 12)
@@ -93,7 +95,7 @@ struct AnalyticsView: View {
                     .font(GrainTheme.mono(9))
                     .tracking(1)
                     .textCase(.uppercase)
-                    .foregroundColor(Color(white: 0.2))
+                    .foregroundColor(GrainTheme.dateHeader)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 8)
                     .padding(.bottom, 40)
@@ -121,38 +123,32 @@ struct AnalyticsView: View {
 
                 analyticsDivider
 
-                // Sample watched items (from receipt data)
-                itemWatchRow(
-                    name: "Oat Milk", brand: "oatly", price: "$4.79",
-                    trend: .up, avgPrice: "$4.50", purchases: 8,
-                    sparkHeights: [0.55, 0.60, 0.55, 0.65, 0.58, 0.55, 0.68, 0.78]
-                )
-                itemWatchRow(
-                    name: "Paper Towels", brand: "seventh gen", price: "$8.29",
-                    trend: .up, avgPrice: "$7.80", purchases: 3,
-                    sparkHeights: [0.70, 0.75, 0.90]
-                )
-                itemWatchRow(
-                    name: "Chicken Breast", brand: "foster farms", price: "$6.49/lb",
-                    trend: .down, avgPrice: "$6.99/lb", purchases: 5,
-                    sparkHeights: [0.75, 0.80, 0.85, 0.70, 0.60]
-                )
-                itemWatchRow(
-                    name: "Greek Yogurt", brand: "fage", price: "$5.49",
-                    trend: .flat, avgPrice: "$5.49", purchases: 4,
-                    sparkHeights: [0.70, 0.70, 0.70, 0.70]
-                )
-                itemWatchRow(
-                    name: "Olive Oil", brand: "california olive ranch", price: "$8.99",
-                    trend: .up, avgPrice: "$8.29", purchases: 3,
-                    sparkHeights: [0.55, 0.70, 0.85]
-                )
+                // Real product price history (populated by ProductIndexer on every save).
+                if watchedItems.isEmpty {
+                    Text("not enough purchase history yet. buy the same items a few times to see price trends.")
+                        .font(GrainTheme.mono(10))
+                        .foregroundColor(GrainTheme.dateHeader)
+                        .lineSpacing(4)
+                        .padding(.top, 16)
+                } else {
+                    ForEach(watchedItems) { item in
+                        itemWatchRow(
+                            name: item.name,
+                            brand: item.brand,
+                            price: item.latestPrice.formatted(.currency(code: "USD")),
+                            trend: item.trend,
+                            avgPrice: item.avgPrice.formatted(.currency(code: "USD")),
+                            purchases: item.purchases,
+                            sparkHeights: item.sparkHeights
+                        )
+                    }
+                }
 
                 Text("\u{2190} swipe for spending")
                     .font(GrainTheme.mono(9))
                     .tracking(1)
                     .textCase(.uppercase)
-                    .foregroundColor(Color(white: 0.2))
+                    .foregroundColor(GrainTheme.dateHeader)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 8)
                     .padding(.bottom, 40)
@@ -184,7 +180,7 @@ struct AnalyticsView: View {
                 HStack(spacing: 4) {
                     Text(price)
                         .font(GrainTheme.mono(13))
-                        .foregroundColor(Color(white: 0.533))
+                        .foregroundColor(GrainTheme.textSecondary)
 
                     switch trend {
                     case .up:
@@ -286,7 +282,7 @@ struct AnalyticsView: View {
 
             Text(value)
                 .font(GrainTheme.mono(10))
-                .foregroundColor(Color(white: 0.4))
+                .foregroundColor(GrainTheme.textSecondary)
                 .frame(width: 44, alignment: .trailing)
                 .lineLimit(1)
                 .padding(.leading, 8)
@@ -307,6 +303,69 @@ struct AnalyticsView: View {
             .padding(.vertical, 20)
     }
 
+    // MARK: - Derived display
+
+    private var monthLabel: String {
+        Date().formatted(.dateTime.month(.abbreviated).year()).uppercased()
+    }
+
+    /// Honest one-liner: real month-over-month change (when there's prior spend to
+    /// compare) plus the top merchants — no hardcoded numbers.
+    private func spendingSummary(_ analytics: SpendingAnalytics) -> String {
+        let lead: String
+        if let pct = monthChange {
+            lead = "\(pct >= 0 ? "+" : "")\(Int(pct.rounded()))% vs last month."
+        } else {
+            lead = "\(analytics.transactionCount) receipt\(analytics.transactionCount == 1 ? "" : "s") this month."
+        }
+        let merchants = analytics.topMerchants.prefix(2).joined(separator: ", ").lowercased()
+        return merchants.isEmpty ? lead : "\(lead) top: \(merchants)."
+    }
+
+    private struct WatchedItem: Identifiable {
+        let id: UUID
+        let name: String
+        let brand: String
+        let latestPrice: Decimal
+        let avgPrice: Decimal
+        let trend: PriceTrend
+        let purchases: Int
+        let sparkHeights: [CGFloat]
+    }
+
+    /// Products with at least two recorded prices, most-tracked first — the real
+    /// price-history feed behind Item Watch (populated by `ProductIndexer` on save).
+    private var watchedItems: [WatchedItem] {
+        products
+            .map { ($0, $0.priceHistory.sorted { $0.date < $1.date }) }
+            .filter { $0.1.count >= 2 }
+            .sorted { $0.1.count > $1.1.count }
+            .prefix(6)
+            .map { product, history in
+                let prices = history.map(\.price)
+                let latest = prices.last ?? 0
+                let avg = product.averagePrice ?? (prices.reduce(0, +) / Decimal(max(prices.count, 1)))
+                let trend: PriceTrend = latest > avg * Decimal(1.02) ? .up
+                    : (latest < avg * Decimal(0.98) ? .down : .flat)
+                let maxP = prices.max() ?? 0
+                let minP = prices.min() ?? 0
+                let range = maxP - minP
+                let heights: [CGFloat] = prices.map { price in
+                    range > 0 ? 0.4 + 0.6 * CGFloat(truncating: ((price - minP) / range) as NSDecimalNumber) : 0.6
+                }
+                return WatchedItem(
+                    id: product.id,
+                    name: product.name,
+                    brand: (product.brand ?? "").lowercased(),
+                    latestPrice: latest,
+                    avgPrice: avg,
+                    trend: trend,
+                    purchases: history.count,
+                    sparkHeights: heights
+                )
+            }
+    }
+
     // MARK: - Data
 
     private func loadAnalytics() {
@@ -315,16 +374,26 @@ struct AnalyticsView: View {
         let now = Date()
         let startOfMonth = calendar.dateInterval(of: .month, for: now)?.start ?? now
         let endOfMonth = calendar.dateInterval(of: .month, for: now)?.end ?? now
+        let prevStart = calendar.date(byAdding: .month, value: -1, to: startOfMonth) ?? startOfMonth
 
         Task {
             let analytics = await analyticsService.generateSpendingAnalytics(
-                for: .monthly,
-                startDate: startOfMonth,
-                endDate: endOfMonth
+                for: .monthly, startDate: startOfMonth, endDate: endOfMonth
             )
+            let previous = await analyticsService.generateSpendingAnalytics(
+                for: .monthly, startDate: prevStart, endDate: startOfMonth
+            )
+
+            // Real month-over-month change, only when there's prior-month spend to compare.
+            var change: Double?
+            if let current = analytics, let prev = previous, prev.totalSpent > 0 {
+                let delta = (current.totalSpent - prev.totalSpent) / prev.totalSpent * 100
+                change = Double(truncating: delta as NSDecimalNumber)
+            }
 
             await MainActor.run {
                 self.currentAnalytics = analytics
+                self.monthChange = change
                 self.isLoading = false
             }
         }

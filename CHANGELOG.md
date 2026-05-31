@@ -10,6 +10,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **AI receipt extraction (hybrid).** On-device Apple Intelligence (Foundation Models) extracts structured receipts by default — no key, no cost, fully private — with an opt-in tier that uses your own Anthropic Claude API key, and the regex parser as the universal fallback. See [ADR-0007](docs/adr/0007-hybrid-ai-extraction.md).
+- **Flag → Review Queue correction flow.** Flag a receipt as incorrect and correct any field — including totals and line items (previously read-only); the pre-correction extraction is captured to improve accuracy over time.
 - Notifications-based launch screen for returning users with recent activity cards and a fast handoff into the main app
 - GitHub Actions Build workflow (`build.yml`) that runs iOS simulator build and tests on pushes and pull requests to `main`
 
@@ -17,16 +19,25 @@ Versions follow [Semantic Versioning](https://semver.org/).
   <img src="screenshots/09-launch-screen.gif" alt="Notifications launch screen preview" width="280" />
 </p>
 
+### Fixed
+- **Manual entry captures brand + category, and editing a receipt keeps analytics in sync.** Manual and edited receipts now have per-item brand and category fields, so the Brands index and category breakdown populate for hand-entered data. Editing an existing item's price, quantity, name, brand, or category now updates its price-history point and brand totals (and re-resolves the product on rename) instead of silently drifting from what the receipt shows.
+- **Claude API key storage no longer fails silently.** The Keychain wrapper now checks the result of every write and delete and sets an explicit accessibility level (`AfterFirstUnlock`); if saving your key ever fails, Settings says so inline instead of appearing to have saved it.
+- **Saving a manual or edited receipt now reports failures instead of silently dropping them.** If a save fails, the form stays open with your input intact and an alert explains what went wrong (previously the error was swallowed and the sheet could dismiss as if it had saved). The Export Data row also now says when the export file couldn't be written, rather than looking merely unavailable.
+- **Deleting a receipt or line item no longer corrupts the product index.** Removing an item left its price-history entry (`PricePoint`) orphaned and the brand's running spend/transaction totals overstated, so brand analytics and Item Watch drifted as receipts were edited or deleted. Deletes now reverse the indexing exactly — the price point is removed, the product average is recomputed, and the brand totals are rolled back.
+- **Analytics breakdowns now reconcile.** The *store* breakdown summed receipt totals (incl. tax) while the *category* and *brand* breakdowns summed line-item prices (pre-tax), so the charts on the analytics screen disagreed; the brand breakdown also keyed off free-text item brands rather than the indexed product/brand identity. All three breakdowns are now computed on a single itemized (pre-tax) basis and reconcile with each other; brand spend keys off the indexed `Product`/`Brand`. The headline total stays money-out (incl. tax).
+- **Scan → save now persists receipts.** The document scanner's `SAVE RECEIPT` button was an empty stub (`// TODO: save receipt`), so tapping it did nothing and no receipt was ever created. It now builds a `Receipt` — with parsed line items and the captured image — inserts it into SwiftData, shows a success confirmation, and surfaces a user-facing alert if the save fails.
+- **Receipt image is now persisted** to `Receipt.imageData` for document scans (first page, JPEG-encoded).
+- **Repaired the corrupted default Xcode scheme.** `grain.xcscheme` had malformed XML in its `LaunchAction` (a `BuildableReference` missing its `ReferencedContainer` attribute and the closing `>`), which made Xcode fail to load the scheme and display **"No Destinations"** — blocking all builds and device runs. Build/run destinations work again.
+
 ### Planned
 - Wire "+" toolbar button to manual receipt entry form
 - Wire "Edit" button on scan preview
-- Persist receipt image to `Receipt.imageData`
-- Replace silent `print()` error handling with user-facing alerts
+- Wire `SAVE` for the guided-capture and live-camera scan modes (document mode now saves)
+- Surface `AnalyticsService` fetch failures in the UI (the remaining silent `print()` paths; save + edit paths now alert)
 - Export Data (CSV / JSON)
 - Import Bank Transactions (OFX/QFX)
 - Tax Categories configuration
 - Deduction Rules configuration
-- Unit tests for `AnalyticsService`
 - Enable CloudKit sync (see [ADR-0005](docs/adr/0005-local-only-storage.md))
 
 ---

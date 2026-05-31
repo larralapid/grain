@@ -85,6 +85,10 @@ enum DemoDataSeeder {
                     productsByBrand[brandName, default: []].append(product)
                 }
 
+                // Give the seeded receipt a realistic thermal scan image so the proof / split /
+                // scan-overlay views demo well (and so Vision can re-OCR it for the line cursor).
+                receipt.imageData = ReceiptImageRenderer.thermalJPEG(for: receipt)
+
                 let bankTransaction = BankTransaction(
                     transactionId: template.bankTransactionId,
                     amount: template.total,
@@ -150,6 +154,7 @@ enum DemoDataSeeder {
                 return item
             }
 
+            receipt.imageData = ReceiptImageRenderer.thermalJPEG(for: receipt)
             return receipt
         }
     }

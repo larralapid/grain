@@ -5,6 +5,7 @@ struct ReceiptListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Receipt.date, order: .reverse) private var receipts: [Receipt]
     @State private var navigationPath = NavigationPath()
+    @State private var showingManualEntry = false
 
     private var monthTotal: Decimal {
         let calendar = Calendar.current
@@ -43,7 +44,7 @@ struct ReceiptListView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     header
                     divider
-                    sectionLabel("recent")
+                    recentHeader
 
                     if receipts.isEmpty {
                         emptyState
@@ -62,6 +63,9 @@ struct ReceiptListView: View {
                 ItemAnalyticsView(item: item)
             }
         }
+        .sheet(isPresented: $showingManualEntry) {
+            ManualReceiptEntryView()
+        }
     }
 
     private var header: some View {
@@ -74,7 +78,7 @@ struct ReceiptListView: View {
 
             HStack(alignment: .firstTextBaseline) {
                 Text(monthTotal.formatted(.currency(code: "USD")))
-                    .font(GrainTheme.mono(36, weight: .light))
+                    .font(GrainTheme.mono(36, weight: .regular))
                     .tracking(-1)
                     .foregroundColor(GrainTheme.textPrimary)
 
@@ -110,6 +114,27 @@ struct ReceiptListView: View {
             .textCase(.uppercase)
             .foregroundColor(GrainTheme.textSecondary)
             .padding(.bottom, 16)
+    }
+
+    private var recentHeader: some View {
+        HStack(alignment: .firstTextBaseline) {
+            sectionLabel("recent")
+
+            Spacer()
+
+            Button {
+                showingManualEntry = true
+            } label: {
+                Text("+ add")
+                    .font(GrainTheme.mono(10))
+                    .tracking(1.4)
+                    .textCase(.uppercase)
+                    .foregroundColor(GrainTheme.textPrimary)
+                    .padding(.bottom, 16)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("add receipt manually")
+        }
     }
 
     private var receiptJournal: some View {
@@ -160,10 +185,12 @@ struct ReceiptListView: View {
                     ].filter { !$0.isEmpty }
 
                     Text(parts.joined(separator: " \u{00B7} "))
-                        .font(GrainTheme.mono(11))
-                        .tracking(0.2)
                         .foregroundColor(GrainTheme.textSecondary)
+                    + Text(receipt.needsReview ? " \u{00B7} needs review" : "")
+                        .foregroundColor(GrainTheme.priceUp)
                 }
+                .font(GrainTheme.mono(11))
+                .tracking(0.2)
             }
 
             Spacer()
@@ -185,6 +212,24 @@ struct ReceiptListView: View {
                 .font(GrainTheme.mono(12))
                 .foregroundColor(GrainTheme.dateHeader)
                 .multilineTextAlignment(.center)
+
+            Button {
+                showingManualEntry = true
+            } label: {
+                Text("+ ADD RECEIPT")
+                    .font(GrainTheme.mono(11, weight: .semibold))
+                    .tracking(0.8)
+                    .foregroundColor(GrainTheme.textPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .overlay(
+                        Rectangle()
+                            .stroke(GrainTheme.border, lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("add receipt manually")
+            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 80)

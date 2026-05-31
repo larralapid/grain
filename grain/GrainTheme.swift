@@ -27,7 +27,7 @@ enum GrainTheme {
                : Color(red: 0.118, green: 0.118, blue: 0.118)
     }
     static var textSecondary: Color {
-        isDark ? Color(red: 0.376, green: 0.376, blue: 0.376)
+        isDark ? Color(red: 0.48, green: 0.48, blue: 0.48)
                : Color(red: 0.533, green: 0.522, blue: 0.502)
     }
     static var accent: Color {
@@ -35,7 +35,7 @@ enum GrainTheme {
                : Color(red: 0.4, green: 0.392, blue: 0.376)
     }
     static var dateHeader: Color {
-        isDark ? Color(red: 0.267, green: 0.267, blue: 0.267)
+        isDark ? Color(red: 0.34, green: 0.34, blue: 0.34)
                : Color(red: 0.667, green: 0.655, blue: 0.635)
     }
 

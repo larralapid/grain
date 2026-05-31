@@ -7,6 +7,7 @@
 
 import Testing
 import Foundation
+import SwiftData
 @testable import grain
 
 // MARK: - Receipt Model Tests
@@ -320,16 +321,25 @@ struct SpendingAnalyticsTests {
 
 struct OCRParserTests {
 
-    // Test the parser via a testable wrapper
-    // Note: ReceiptScannerService methods are private, so we test
-    // the public scanReceipt flow. For unit testing internal parsing,
-    // these methods should be made internal (not private) with @testable.
+    // ReceiptScannerService is @MainActor, so tests that touch it must be too.
 
+    @MainActor
     @Test func receiptScannerServiceInitialState() async throws {
         let service = ReceiptScannerService()
         #expect(service.isScanning == false)
         #expect(service.scannedText == "")
         #expect(service.lastError == nil)
+    }
+
+    // parseReceiptFromText is now `internal`, so the OCR parser can be unit-tested directly.
+    @MainActor
+    @Test func parsesMerchantTotalAndItemsFromText() async throws {
+        let service = ReceiptScannerService()
+        let receipt = service.parseReceiptFromText("Trader Joe's\nBananas 0.58\nTOTAL 0.58")
+
+        #expect(receipt?.merchantName == "Trader Joe's")
+        #expect(receipt?.total == Decimal(string: "0.58")!)
+        #expect(receipt?.items.contains(where: { $0.name == "Bananas" }) == true)
     }
 }
 
@@ -350,5 +360,228 @@ struct PricePointTests {
         #expect(pp.merchantName == "Whole Foods")
         #expect(pp.product == nil)
         #expect(pp.receiptItem == nil)
+    }
+}
+
+// MARK: - Extraction Tests
+
+struct ExtractionTests {
+
+    @MainActor
+    @Test func makeReceiptMapsExtractionToModel() throws {
+        let extracted = ExtractedReceipt(
+            merchantName: "Trader Joe's",
+            merchantAddress: "123 Main",
+            date: nil,
+            subtotal: Decimal(string: "9.00")!,
+            tax: Decimal(string: "1.00")!,
+            total: Decimal(string: "10.00")!,
+            items: [
+                ExtractedItem(name: "Bananas", quantity: 2,
+                              unitPrice: Decimal(string: "0.29")!,
+                              totalPrice: Decimal(string: "0.58")!,
+                              brand: "TJ", category: "Produce")
+            ]
+        )
+
+        let receipt = extracted.makeReceipt(imageData: nil, source: .claude, ocrText: "raw ocr")
+
+        #expect(receipt.merchantName == "Trader Joe's")
+        #expect(receipt.total == Decimal(string: "10.00")!)
+        #expect(receipt.items.count == 1)
+        #expect(receipt.items.first?.name == "Bananas")
+        #expect(receipt.items.first?.receipt === receipt)   // inverse relationship is set
+        #expect(receipt.extractionSource == "claude")
+        #expect(receipt.originalExtractionJSON != nil)       // captured for the eval corpus
+    }
+
+    @MainActor
+    @Test func coordinatorFallsBackToRegexWhenAIDisabled() async throws {
+        UserDefaults.standard.set(false, forKey: "ai.enabled")
+        defer { UserDefaults.standard.removeObject(forKey: "ai.enabled") }
+
+        let (source, _) = ExtractorCoordinator.selectExtractor()
+        #expect(source == .regex)
+    }
+
+    @Test func claudeToolUseResponseParses() throws {
+        let json = """
+        {"content":[{"type":"tool_use","name":"record_receipt","input":{"merchantName":"Costco","subtotal":18.0,"tax":2.0,"total":20.0,"items":[{"name":"Olive Oil","quantity":1,"unitPrice":18.0,"totalPrice":18.0}]}}]}
+        """.data(using: .utf8)!
+
+        let extracted = try ClaudeReceiptExtractor.parse(json)
+
+        #expect(extracted.merchantName == "Costco")
+        #expect(extracted.total == Decimal(string: "20")!)
+        #expect(extracted.items.count == 1)
+        #expect(extracted.items.first?.name == "Olive Oil")
+    }
+}
+
+// MARK: - Product Indexer Tests
+
+@MainActor
+struct ProductIndexerTests {
+
+    private func makeContext() throws -> ModelContext {
+        let schema = Schema([Receipt.self, ReceiptItem.self, Product.self, PricePoint.self, Brand.self, BankTransaction.self, SpendingAnalytics.self])
+        let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)])
+        return container.mainContext
+    }
+
+    @discardableResult
+    private func addReceipt(merchant: String, itemName: String, brand: String?, category: String?, price: String, in context: ModelContext) -> Receipt {
+        let amount = Decimal(string: price)!
+        // Insert the receipt before wiring relationships (mirrors DemoDataSeeder + the app's
+        // save sites); wiring an inverse relationship on a not-yet-inserted @Model traps.
+        let receipt = Receipt(date: Date(), merchantName: merchant, total: amount, subtotal: amount, tax: 0)
+        context.insert(receipt)
+        let item = ReceiptItem(name: itemName, brand: brand, category: category, quantity: 1, unitPrice: amount, totalPrice: amount)
+        item.receipt = receipt
+        receipt.items.append(item)
+        context.insert(item)
+        return receipt
+    }
+
+    @Test(.disabled("Swift Testing + in-memory SwiftData traps (signal) on receipt insert; ProductIndexer is verified via the running app + DemoDataSeeder. Re-add under XCTest — see ROADMAP A11."))
+    func indexCreatesProductBrandAndPricePoint() throws {
+        let context = try makeContext()
+        let receipt = addReceipt(merchant: "Trader Joe's", itemName: "Bananas", brand: "TJ", category: "Produce", price: "0.58", in: context)
+
+        ProductIndexer.index(receipt, in: context)
+        try context.save()
+
+        let products = try context.fetch(FetchDescriptor<Product>())
+        #expect(products.count == 1)
+        #expect(products.first?.name == "Bananas")
+        #expect(receipt.items.first?.product?.name == "Bananas")          // item linked to product
+        #expect(products.first?.priceHistory.count == 1)
+        #expect(products.first?.averagePrice == Decimal(string: "0.58")!)
+
+        let brands = try context.fetch(FetchDescriptor<Brand>())
+        #expect(brands.count == 1)
+        #expect(brands.first?.name == "TJ")
+        #expect(brands.first?.totalSpent == Decimal(string: "0.58")!)
+
+        let pricePoints = try context.fetch(FetchDescriptor<PricePoint>())
+        #expect(pricePoints.count == 1)
+        #expect(pricePoints.first?.merchantName == "Trader Joe's")
+    }
+
+    @Test(.disabled("Swift Testing + in-memory SwiftData traps on insert — see ROADMAP A11."))
+    func indexDedupesProductAcrossReceiptsAndAveragesPrice() throws {
+        let context = try makeContext()
+        let r1 = addReceipt(merchant: "Store", itemName: "Milk", brand: "Acme", category: "Dairy", price: "4.00", in: context)
+        ProductIndexer.index(r1, in: context)
+        try context.save()
+
+        let r2 = addReceipt(merchant: "Store", itemName: "Milk", brand: "Acme", category: "Dairy", price: "5.00", in: context)
+        ProductIndexer.index(r2, in: context)
+        try context.save()
+
+        let products = try context.fetch(FetchDescriptor<Product>())
+        #expect(products.count == 1)                                      // fetch-or-create deduped across sessions
+        #expect(products.first?.priceHistory.count == 2)
+        #expect(products.first?.averagePrice == Decimal(string: "4.50")!) // (4 + 5) / 2
+
+        let brands = try context.fetch(FetchDescriptor<Brand>())
+        #expect(brands.count == 1)
+        #expect(brands.first?.transactionCount == 2)
+    }
+
+    @Test(.disabled("Swift Testing + in-memory SwiftData traps on insert — see ROADMAP A11."))
+    func indexIsIdempotentForAlreadyLinkedItems() throws {
+        let context = try makeContext()
+        let receipt = addReceipt(merchant: "Store", itemName: "Eggs", brand: "Farm", category: "Dairy", price: "3.00", in: context)
+        ProductIndexer.index(receipt, in: context)
+        try context.save()
+        ProductIndexer.index(receipt, in: context)   // item already has a product → no-op
+        try context.save()
+
+        #expect(try context.fetch(FetchDescriptor<PricePoint>()).count == 1)   // no duplicate price point
+        #expect(try context.fetch(FetchDescriptor<Product>()).count == 1)
+    }
+}
+
+// MARK: - Analytics breakdown consistency (BUG-4)
+//
+// The breakdown helpers are pure functions of `[Receipt]`, so these use *transient* (non-inserted)
+// receipts — sidestepping the A11 test-host trap, which only fires when @Models are inserted into a
+// ModelContainer.
+struct AnalyticsBreakdownTests {
+
+    private func receipt(_ merchant: String, _ items: [(name: String, brand: String?, category: String?, price: String)]) -> Receipt {
+        let total = items.reduce(Decimal(0)) { $0 + Decimal(string: $1.price)! }
+        let r = Receipt(date: Date(), merchantName: merchant, total: total, subtotal: total, tax: 0)
+        for i in items {
+            let amount = Decimal(string: i.price)!
+            let item = ReceiptItem(name: i.name, brand: i.brand, category: i.category, quantity: 1, unitPrice: amount, totalPrice: amount)
+            item.receipt = r
+            r.items.append(item)
+        }
+        return r
+    }
+
+    @Test func breakdownsShareOneBasisAndReconcile() {
+        let receipts = [
+            receipt("Costco", [("Milk", "Acme", "Dairy", "4.00"), ("Bread", "Acme", "Bakery", "3.00")]),
+            receipt("Target", [("Soap", "Dove", "Household", "6.00")])
+        ]
+        let itemized = Decimal(string: "13.00")!   // 4 + 3 + 6, pre-tax
+
+        let category = AnalyticsService.calculateCategoryBreakdown(from: receipts)
+        let merchant = AnalyticsService.calculateMerchantBreakdown(from: receipts)
+        let brand = AnalyticsService.calculateBrandBreakdown(from: receipts)
+
+        // All three breakdowns attribute the same itemized money → the charts reconcile (BUG-4).
+        #expect(category.values.reduce(0, +) == itemized)
+        #expect(merchant.values.reduce(0, +) == itemized)
+        #expect(brand.values.reduce(0, +) == itemized)
+        #expect(category.values.reduce(0, +) == merchant.values.reduce(0, +))
+
+        // Merchant is itemized per store (not receipt.total incl. tax).
+        #expect(merchant["Costco"] == Decimal(string: "7.00")!)
+        #expect(merchant["Target"] == Decimal(string: "6.00")!)
+        #expect(category["Dairy"] == Decimal(string: "4.00")!)
+    }
+
+    @Test func brandBreakdownPrefersIndexedProductBrand() {
+        let r = receipt("Store", [("Widget", "free-text brand", "Misc", "5.00")])
+        // Once indexed, the item links to a Product carrying the normalized brand identity.
+        r.items.first?.product = Product(name: "Widget", brand: "Indexed Brand", category: "Misc")
+
+        let brand = AnalyticsService.calculateBrandBreakdown(from: [r])
+        #expect(brand["Indexed Brand"] == Decimal(string: "5.00")!)
+        #expect(brand["free-text brand"] == nil)
+    }
+}
+
+// MARK: - Regex parser regressions (BUG-5)
+
+struct RegexParserRegressionTests {
+
+    @Test func subtotalIsNotMisreadAsTotal() {
+        let r = RegexReceiptParser.parse("Store\nWidget 9.99\nSUBTOTAL 9.99\nTAX 0.80\nTOTAL 10.79")
+        #expect(r.subtotal == Decimal(string: "9.99")!)
+        #expect(r.tax == Decimal(string: "0.80")!)
+        #expect(r.total == Decimal(string: "10.79")!)
+    }
+
+    @Test func taxWordBoundaryDoesNotMatchTaxiOrGalaxy() {
+        // "TAXI"/"GALAXY" contain "TAX" as a substring but must not register as a tax line.
+        let r = RegexReceiptParser.parse("GALAXY MART\nTAXI FARE 12.00\nTOTAL 12.00")
+        #expect(r.tax == 0)
+        #expect(r.total == Decimal(string: "12.00")!)
+    }
+}
+
+// MARK: - CSV export (BUG-6)
+
+struct CSVExporterTests {
+
+    @Test func isoDateUsesUTC() {
+        // Epoch 0 is 1970-01-01 in UTC but 1969-12-31 in any zone west of UTC; the exporter's
+        // UTC formatter must yield the UTC calendar date regardless of the runner's time zone.
+        #expect(CSVExporter.isoDate(Date(timeIntervalSince1970: 0)) == "1970-01-01")
     }
 }
