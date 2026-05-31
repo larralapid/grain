@@ -57,6 +57,7 @@ struct ReceiptDetailView: View {
                         try? modelContext.save()
                     }
                     Button("delete", role: .destructive) {
+                        ProductIndexer.deindex(receipt, in: modelContext)
                         modelContext.delete(receipt)
                         dismiss()
                     }
@@ -376,6 +377,7 @@ struct EditReceiptView: View {
         // Reconcile items: delete removed, update existing, insert newly-added.
         let keptIDs = Set(drafts.compactMap { $0.existing?.id })
         for item in receipt.items where !keptIDs.contains(item.id) {
+            ProductIndexer.deindex(item, in: modelContext)
             modelContext.delete(item)
         }
         var rebuilt: [ReceiptItem] = []

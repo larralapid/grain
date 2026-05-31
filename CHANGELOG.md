@@ -20,6 +20,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 </p>
 
 ### Fixed
+- **Deleting a receipt or line item no longer corrupts the product index.** Removing an item left its price-history entry (`PricePoint`) orphaned and the brand's running spend/transaction totals overstated, so brand analytics and Item Watch drifted as receipts were edited or deleted. Deletes now reverse the indexing exactly — the price point is removed, the product average is recomputed, and the brand totals are rolled back.
 - **Analytics breakdowns now reconcile.** The *store* breakdown summed receipt totals (incl. tax) while the *category* and *brand* breakdowns summed line-item prices (pre-tax), so the charts on the analytics screen disagreed; the brand breakdown also keyed off free-text item brands rather than the indexed product/brand identity. All three breakdowns are now computed on a single itemized (pre-tax) basis and reconcile with each other; brand spend keys off the indexed `Product`/`Brand`. The headline total stays money-out (incl. tax).
 - **Scan → save now persists receipts.** The document scanner's `SAVE RECEIPT` button was an empty stub (`// TODO: save receipt`), so tapping it did nothing and no receipt was ever created. It now builds a `Receipt` — with parsed line items and the captured image — inserts it into SwiftData, shows a success confirmation, and surfaces a user-facing alert if the save fails.
 - **Receipt image is now persisted** to `Receipt.imageData` for document scans (first page, JPEG-encoded).

@@ -46,6 +46,46 @@ enum ProductIndexer {
         }
     }
 
+    /// Reverses `index(_:in:)` for a single item that is about to be deleted: removes the item's
+    /// `PricePoint`(s) from its product's history (and from the context), recomputes the product
+    /// average, and rolls back the brand spend/count the item contributed. Call this *before*
+    /// `context.delete(item)` so no `PricePoint` is orphaned and `Brand` stats stay accurate.
+    ///
+    /// (`PricePoint`/`Brand` have no SwiftData inverse or cascade rule yet — A6/A10 — so cleanup is
+    /// explicit. Stats are clamped at zero to stay safe if an item is ever de-indexed twice.)
+    static func deindex(_ item: ReceiptItem, in context: ModelContext) {
+        if let product = item.product {
+            let orphaned = product.priceHistory.filter { $0.receiptItem?.id == item.id }
+            product.priceHistory.removeAll { $0.receiptItem?.id == item.id }
+            for point in orphaned {
+                context.delete(point)
+            }
+            product.averagePrice = averagePrice(for: product.priceHistory)
+            product.updatedAt = Date()
+        }
+        item.product = nil
+
+        // Mirror the brand rollup in `index`: it only counts items whose `item.brand` is non-empty.
+        guard let brandName = item.brand, !brandName.isEmpty,
+              let brand = fetchBrand(named: brandName, in: context) else {
+            return
+        }
+        brand.totalSpent = max(0, brand.totalSpent - item.totalPrice)
+        brand.transactionCount = max(0, brand.transactionCount - 1)
+        brand.averageTransactionAmount = brand.transactionCount > 0
+            ? brand.totalSpent / Decimal(brand.transactionCount)
+            : 0
+        brand.updatedAt = Date()
+    }
+
+    /// De-indexes every line item on a receipt — call before deleting the whole receipt (the
+    /// `Receipt.items` cascade removes the items, but not their `PricePoint`s or `Brand` rollups).
+    static func deindex(_ receipt: Receipt, in context: ModelContext) {
+        for item in receipt.items {
+            deindex(item, in: context)
+        }
+    }
+
     // MARK: - Fetch-or-create
 
     /// Finds an existing `Product` matching the item's (name, brand, category) or creates one.
@@ -92,6 +132,17 @@ enum ProductIndexer {
         let brand = Brand(name: name, category: category)
         context.insert(brand)
         return brand
+    }
+
+    /// Finds an existing `Brand` by name without creating one (used when rolling back on delete).
+    private static func fetchBrand(named name: String, in context: ModelContext) -> Brand? {
+        var descriptor = FetchDescriptor<Brand>(
+            predicate: #Predicate { brand in
+                brand.name == name
+            }
+        )
+        descriptor.fetchLimit = 1
+        return try? context.fetch(descriptor).first
     }
 
     // MARK: - Rollup
