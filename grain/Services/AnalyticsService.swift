@@ -21,7 +21,10 @@ class AnalyticsService: ObservableObject {
             let totalSpent = receipts.reduce(Decimal(0)) { total, receipt in
                 total + receipt.total
             }
-            
+
+            // `totalSpent` is money-out (receipt totals, incl. tax). The category / brand /
+            // merchant breakdowns are all itemized (Σ item.totalPrice, pre-tax) so they share
+            // one basis and reconcile with each other; together they sum to totalSpent minus tax.
             let categoryBreakdown = calculateCategoryBreakdown(from: receipts)
             let brandBreakdown = calculateBrandBreakdown(from: receipts)
             let merchantBreakdown = calculateMerchantBreakdown(from: receipts)
@@ -74,21 +77,27 @@ class AnalyticsService: ObservableObject {
         
         for receipt in receipts {
             for item in receipt.items {
-                let brand = item.brand ?? "Unknown Brand"
+                // Prefer the indexed Product/Brand identity over raw free-text item.brand.
+                let brand = item.product?.brand ?? item.brand ?? "Unknown Brand"
                 breakdown[brand, default: 0] += item.totalPrice
             }
         }
-        
+
         return breakdown
     }
-    
+
+    // Item-level (pre-tax) so it shares a basis with the category/brand breakdowns — see
+    // `generateSpendingAnalytics`. Each receipt has exactly one merchant, so this is "itemized
+    // spend per store" rather than money-out per store.
     private func calculateMerchantBreakdown(from receipts: [Receipt]) -> [String: Decimal] {
         var breakdown: [String: Decimal] = [:]
-        
+
         for receipt in receipts {
-            breakdown[receipt.merchantName, default: 0] += receipt.total
+            for item in receipt.items {
+                breakdown[receipt.merchantName, default: 0] += item.totalPrice
+            }
         }
-        
+
         return breakdown
     }
     

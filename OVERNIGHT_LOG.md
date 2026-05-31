@@ -35,3 +35,5 @@ Branch: `auto/overnight-2026-05-30` (off `main` @ `cc8b1d2`). Driver: Claude (Op
 - **bug/arch audit** — confirmed BUG-1 (no product indexing on real saves) + found BUG-3..7, A6..A10. SpendingAnalytics suspected then cleared (the verify gate caught a wrong hypothesis).
 - **stall (~18h)** — an `xcodebuild test` run deadlocked building the UI-test bundle and hung ~17.75h, blocking the loop; killed on resume (this was the "1065 min" task).
 - **BUG-1 + BUG-3 (fixed)** — `ProductIndexer` indexes products/brands/price-points at every save site; scan save prefers proof-sheet values (no `$0`); dead code removed. Compile-verified; indexer unit tests added (fixed an insert-order test-helper crash).
+- **resume (2026-05-30)** — re-established baseline (`BUILD SUCCEEDED`), wrote + got approval on a plan for the remaining queue (BUG-4, BUG-7, B9, B3, A7, A8/A9, B5; A1/A6/A10 deferred as schema-risky).
+- **BUG-4 (fixed)** — unified all three analytics breakdowns onto one itemized (pre-tax) basis so the category/store charts reconcile; brand breakdown keys off the indexed `item.product?.brand` identity. Headline total stays money-out (incl. tax). Build green.

@@ -20,6 +20,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 </p>
 
 ### Fixed
+- **Analytics breakdowns now reconcile.** The *store* breakdown summed receipt totals (incl. tax) while the *category* and *brand* breakdowns summed line-item prices (pre-tax), so the charts on the analytics screen disagreed; the brand breakdown also keyed off free-text item brands rather than the indexed product/brand identity. All three breakdowns are now computed on a single itemized (pre-tax) basis and reconcile with each other; brand spend keys off the indexed `Product`/`Brand`. The headline total stays money-out (incl. tax).
 - **Scan → save now persists receipts.** The document scanner's `SAVE RECEIPT` button was an empty stub (`// TODO: save receipt`), so tapping it did nothing and no receipt was ever created. It now builds a `Receipt` — with parsed line items and the captured image — inserts it into SwiftData, shows a success confirmation, and surfaces a user-facing alert if the save fails.
 - **Receipt image is now persisted** to `Receipt.imageData` for document scans (first page, JPEG-encoded).
 - **Repaired the corrupted default Xcode scheme.** `grain.xcscheme` had malformed XML in its `LaunchAction` (a `BuildableReference` missing its `ReferencedContainer` attribute and the closing `>`), which made Xcode fail to load the scheme and display **"No Destinations"** — blocking all builds and device runs. Build/run destinations work again.
