@@ -10,6 +10,7 @@ struct SettingsView: View {
     @State private var apiKeyInput = ""
     @State private var keychainSaveFailed = false
     @State private var showingReviewQueue = false
+    @State private var exportURL: URL?
 
     var body: some View {
         ZStack {
@@ -97,37 +98,42 @@ struct SettingsView: View {
         }
     }
 
-    // Export Data: writes receipts to a temp CSV and presents the share sheet.
+    // Export Data: presents the share sheet for a CSV written to a temp file.
     // ShareLink needs a non-optional item, so we disable the row when there is
-    // nothing to export or the file could not be written.
+    // nothing to export or the file could not be written. The CSV is (re)built
+    // by `regenerateExportURL()` only when the section appears or the receipt
+    // count changes — not on every render (typing the API key, toggling AI…).
     @ViewBuilder
     private var exportRow: some View {
-        if let url = exportCSVURL {
-            ShareLink(item: url) {
+        Group {
+            if let url = exportURL {
+                ShareLink(item: url) {
+                    settingRow(
+                        label: "Export Data",
+                        description: "Download your \(receipts.count) receipt\(receipts.count == 1 ? "" : "s") as a CSV, one row per item."
+                    )
+                }
+                .buttonStyle(.plain)
+            } else {
                 settingRow(
                     label: "Export Data",
-                    description: "Download your \(receipts.count) receipt\(receipts.count == 1 ? "" : "s") as a CSV, one row per item."
+                    description: receipts.isEmpty
+                        ? "Nothing to export yet \u{2014} scan a receipt first."
+                        // Non-empty + no URL means the CSV write failed (vs. nothing to export).
+                        : "Couldn\u{2019}t prepare the export file \u{2014} free up some storage and try again."
                 )
+                .opacity(0.5)
             }
-            .buttonStyle(.plain)
-        } else {
-            settingRow(
-                label: "Export Data",
-                description: receipts.isEmpty
-                    ? "Nothing to export yet \u{2014} scan a receipt first."
-                    // Non-empty + no URL means the CSV write failed (vs. nothing to export).
-                    : "Couldn\u{2019}t prepare the export file \u{2014} free up some storage and try again."
-            )
-            .opacity(0.5)
         }
+        .task(id: receipts.count) { regenerateExportURL() }
     }
 
-    // Builds the CSV file on demand. A stable, timestamped name keeps each
-    // export distinct while remaining valid for the share sheet.
-    private var exportCSVURL: URL? {
-        guard !receipts.isEmpty else { return nil }
+    // Writes the CSV to a timestamped temp file and caches its URL. Called on
+    // appear and when the receipt count changes — not per render.
+    private func regenerateExportURL() {
+        guard !receipts.isEmpty else { exportURL = nil; return }
         let stamp = CSVExporter.isoDate(Date())
-        return try? CSVExporter.writeCSV(from: receipts, fileName: "grain-export-\(stamp)")
+        exportURL = try? CSVExporter.writeCSV(from: receipts, fileName: "grain-export-\(stamp)")
     }
 
     private var aiSection: some View {

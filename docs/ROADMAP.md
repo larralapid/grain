@@ -87,12 +87,12 @@ Implementing the **Top 5** now (high-impact, low-risk, GrainTheme-consistent); t
 
 ## Discoveries / Parking Lot
 _Capture here; do not act out of scope. Promote to Backlog when prioritized._
-- CSV export regenerates the file on every Settings render (computed `exportCSVURL`) — generate on-demand/cache instead. Minor; fine at demo scale.
+- ✅ CSV export no longer regenerates per render — `SettingsView` caches the URL in `@State`, rebuilt only on appear / receipt-count change via `.task(id:)`. [Copilot review, PR #63]
 - Mockup `screenshots/01-home.png` shows a top-right "filter" control not present in code (ghost affordance) — build it or drop it (designer M3).
 - Scan-overlay lightbox (ReceiptDetailView) uses raw scrim/white colors — consider a `GrainTheme.scrim` token rather than a blind swap (polish builder note).
 - Add a `ReceiptDetailView` #Preview with `needsReview = true` for visual QA of the flag marker.
-- Editing an existing item's price/qty doesn't update its `PricePoint` (price history = value at first index only) — consider updating the latest PricePoint on edit.
-- `ManualReceiptEntryView` has no brand/category inputs, so manual entries create `Product`s with empty brand/category and never populate the Brands index — add brand/category fields.
+- ✅ Editing an item now keeps the index in sync — `EditReceiptView.saveChanges` de-indexes any changed item and lets the trailing `index(...)` re-index it, so the `PricePoint` / `Brand` totals track price/qty/name/brand edits and the product re-resolves on rename. [Copilot review, PR #63]
+- ✅ `ManualReceiptEntryView` (and `EditReceiptView`) now have per-item brand + category fields, so manual entries populate the Brands index and category analytics. [Copilot review, PR #63]
 - Split view: let the first/last line center via half-viewport insets (review Med finding).
 - Split view: persist OCR line bounding boxes at scan time so the view needn't re-run Vision.
 - `SpendingAnalytics` is a persisted `@Model` but behaves like derived data → make it a plain `struct` (data-model hygiene).

@@ -35,6 +35,11 @@ struct ManualReceiptEntryView: View {
                     ForEach($drafts) { $draft in
                         VStack(alignment: .leading, spacing: 6) {
                             TextField("Item name", text: $draft.name)
+                            HStack {
+                                TextField("Brand", text: $draft.brand)
+                                TextField("Category", text: $draft.category)
+                            }
+                            .font(.footnote)
                             Stepper("Qty \(draft.quantity)", value: $draft.quantity, in: 1...99)
                             HStack {
                                 Text("unit").foregroundStyle(.secondary)
@@ -127,6 +132,8 @@ struct ManualReceiptEntryView: View {
         for draft in drafts {
             let item = ReceiptItem(
                 name: draft.name,
+                brand: draft.brand.trimmingCharacters(in: .whitespaces).isEmpty ? nil : draft.brand.trimmingCharacters(in: .whitespaces),
+                category: draft.category.trimmingCharacters(in: .whitespaces).isEmpty ? nil : draft.category.trimmingCharacters(in: .whitespaces),
                 quantity: draft.quantity,
                 unitPrice: draft.unitPrice,
                 totalPrice: draft.totalPrice
@@ -155,6 +162,8 @@ private struct ItemDraft: Identifiable {
     var quantity: Int
     var unitPrice: Decimal
     var totalPrice: Decimal
+    var brand: String = ""
+    var category: String = ""
 }
 
 #Preview {

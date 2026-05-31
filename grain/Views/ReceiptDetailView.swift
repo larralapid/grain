@@ -287,7 +287,7 @@ struct EditReceiptView: View {
         self._tax = State(initialValue: receipt.tax)
         self._total = State(initialValue: receipt.total)
         self._drafts = State(initialValue: receipt.items.map {
-            ItemDraft(id: $0.id, name: $0.name, quantity: $0.quantity, unitPrice: $0.unitPrice, totalPrice: $0.totalPrice, existing: $0)
+            ItemDraft(id: $0.id, name: $0.name, quantity: $0.quantity, unitPrice: $0.unitPrice, totalPrice: $0.totalPrice, brand: $0.brand ?? "", category: $0.category ?? "", existing: $0)
         })
     }
 
@@ -304,6 +304,11 @@ struct EditReceiptView: View {
                     ForEach($drafts) { $draft in
                         VStack(alignment: .leading, spacing: 6) {
                             TextField("Item name", text: $draft.name)
+                            HStack {
+                                TextField("Brand", text: $draft.brand)
+                                TextField("Category", text: $draft.category)
+                            }
+                            .font(.footnote)
                             Stepper("Qty \(draft.quantity)", value: $draft.quantity, in: 1...99)
                             HStack {
                                 Text("unit").foregroundStyle(.secondary)
@@ -393,14 +398,32 @@ struct EditReceiptView: View {
         }
         var rebuilt: [ReceiptItem] = []
         for draft in drafts {
+            let brand = draft.brand.trimmingCharacters(in: .whitespaces)
+            let category = draft.category.trimmingCharacters(in: .whitespaces)
             if let existing = draft.existing {
+                // If any indexed field changed, roll back the old index contribution and clear the
+                // product link first, so the re-index below re-resolves the product (handles
+                // renames) and records the new price. Without this, edits to an already-indexed
+                // item leave its PricePoint / Brand totals stale — silent drift from the receipt.
+                let changed = existing.name != draft.name
+                    || existing.quantity != draft.quantity
+                    || existing.unitPrice != draft.unitPrice
+                    || existing.totalPrice != draft.totalPrice
+                    || (existing.brand ?? "") != brand
+                    || (existing.category ?? "") != category
+                if changed {
+                    ProductIndexer.deindex(existing, in: modelContext)
+                }
                 existing.name = draft.name
                 existing.quantity = draft.quantity
                 existing.unitPrice = draft.unitPrice
                 existing.totalPrice = draft.totalPrice
+                existing.brand = brand.isEmpty ? nil : brand
+                existing.category = category.isEmpty ? nil : category
+                existing.updatedAt = Date()
                 rebuilt.append(existing)
             } else {
-                let item = ReceiptItem(name: draft.name, quantity: draft.quantity, unitPrice: draft.unitPrice, totalPrice: draft.totalPrice)
+                let item = ReceiptItem(name: draft.name, brand: brand.isEmpty ? nil : brand, category: category.isEmpty ? nil : category, quantity: draft.quantity, unitPrice: draft.unitPrice, totalPrice: draft.totalPrice)
                 item.receipt = receipt
                 modelContext.insert(item)
                 rebuilt.append(item)
@@ -408,8 +431,9 @@ struct EditReceiptView: View {
         }
         receipt.items = rebuilt
 
-        // Index any newly-added items into the product index. Items that already have a linked
-        // `product` are skipped, so edits only pick up the new line items.
+        // Index added items and re-index any edited items that were de-indexed above (both now
+        // have `product == nil`). Unchanged items keep their product and are skipped, so there's
+        // no churn — and price history / Brand totals track the edits.
         ProductIndexer.index(receipt, in: modelContext)
 
         // Resolving a flag clears it but keeps originalExtractionJSON for the eval corpus.
@@ -433,6 +457,8 @@ private struct ItemDraft: Identifiable {
     var quantity: Int
     var unitPrice: Decimal
     var totalPrice: Decimal
+    var brand: String = ""
+    var category: String = ""
     var existing: ReceiptItem?
 }
 
