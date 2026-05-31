@@ -41,7 +41,7 @@ Receipts → structured, granular data (item + brand + price history) → insigh
 | B2 | CSV data export | export | High | #5 #26 | done |
 | B3 | Replace `print()` error-swallowing with user-facing alerts | quality | High | #58 | done (save paths) |
 | B4 | "Flagged for review" badge in ReceiptDetailView | correction | Med | review | todo |
-| B5 | AnalyticsService + parser regression tests | quality | Med | #58 | todo |
+| B5 | AnalyticsService + parser regression tests | quality | Med | #58 | done |
 | B6 | Targeted UI polish — designer plan Top 5 | design | High | #7 | done |
 | B7 | Pitch screenshots / demo capture | design | Med | demo | todo |
 | B8 | Attach sample images to seeded demo receipts | demo | Med | discovered | todo |
@@ -63,7 +63,7 @@ _When a bug is found, log it here AND fix it._
 ## Architecture / cleanliness (standing bar)
 - **A1** `SpendingAnalytics` is a persisted `@Model` but is derived data → make it a plain `struct` returned by `AnalyticsService`.
 - **A2** Errors swallowed with `print()` across services/views → user-facing alerts (= B3).
-- **A3** OCR parser internals untested + no regression corpus (= B5).
+- **A3 (PARTIAL)** — `RegexReceiptParser` now has regression tests (SUBTOTAL / `\bTAX\b` / TOTAL — BUG-5), plus `AnalyticsService` breakdown-consistency tests (BUG-4) and a CSV UTC test (BUG-6); all container-free to dodge the A11 trap. A broader real-receipt corpus is still future.
 - **A4** O(n) analytics aggregation + per-render recompute (`ReceiptListView.groupedReceipts`, `ItemAnalyticsView`) → cache / SwiftData predicate.
 - **A5** Dead code: `DocumentScanProcessor.makeReceipt` + `decimal(from:)` in `ScanPOC_DocumentScanner` are superseded by `ExtractorCoordinator` — remove (folding into the BUG-3 fix).
 - **A6** SwiftData relationships missing inverses/delete rules on `Product.priceHistory`, `Brand.products`, `PricePoint.*`, `ReceiptItem.product`, `BankTransaction.receipt` → orphans. Declare carefully (schema change → launch-test, likely needs A10).

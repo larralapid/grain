@@ -37,7 +37,6 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - Import Bank Transactions (OFX/QFX)
 - Tax Categories configuration
 - Deduction Rules configuration
-- Unit tests for `AnalyticsService`
 - Enable CloudKit sync (see [ADR-0005](docs/adr/0005-local-only-storage.md))
 
 ---

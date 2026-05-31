@@ -25,9 +25,9 @@ class AnalyticsService: ObservableObject {
             // `totalSpent` is money-out (receipt totals, incl. tax). The category / brand /
             // merchant breakdowns are all itemized (Σ item.totalPrice, pre-tax) so they share
             // one basis and reconcile with each other; together they sum to totalSpent minus tax.
-            let categoryBreakdown = calculateCategoryBreakdown(from: receipts)
-            let brandBreakdown = calculateBrandBreakdown(from: receipts)
-            let merchantBreakdown = calculateMerchantBreakdown(from: receipts)
+            let categoryBreakdown = Self.calculateCategoryBreakdown(from: receipts)
+            let brandBreakdown = Self.calculateBrandBreakdown(from: receipts)
+            let merchantBreakdown = Self.calculateMerchantBreakdown(from: receipts)
             
             let averageTransactionAmount = receipts.isEmpty ? Decimal(0) : totalSpent / Decimal(receipts.count)
             let transactionCount = receipts.count
@@ -36,7 +36,7 @@ class AnalyticsService: ObservableObject {
             let topBrands = Array(brandBreakdown.sorted { $0.value > $1.value }.prefix(10).map { $0.key })
             let topMerchants = Array(merchantBreakdown.sorted { $0.value > $1.value }.prefix(10).map { $0.key })
             
-            let taxDeductibleAmount = calculateTaxDeductibleAmount(from: receipts)
+            let taxDeductibleAmount = Self.calculateTaxDeductibleAmount(from: receipts)
             
             return SpendingAnalytics(
                 period: period,
@@ -59,7 +59,9 @@ class AnalyticsService: ObservableObject {
         }
     }
     
-    private func calculateCategoryBreakdown(from receipts: [Receipt]) -> [String: Decimal] {
+    // Pure functions of the receipt set (no `modelContext`), so they're `static` and unit-testable
+    // with transient receipts — see `AnalyticsBreakdownTests`.
+    static func calculateCategoryBreakdown(from receipts: [Receipt]) -> [String: Decimal] {
         var breakdown: [String: Decimal] = [:]
         
         for receipt in receipts {
@@ -72,7 +74,7 @@ class AnalyticsService: ObservableObject {
         return breakdown
     }
     
-    private func calculateBrandBreakdown(from receipts: [Receipt]) -> [String: Decimal] {
+    static func calculateBrandBreakdown(from receipts: [Receipt]) -> [String: Decimal] {
         var breakdown: [String: Decimal] = [:]
         
         for receipt in receipts {
@@ -89,7 +91,7 @@ class AnalyticsService: ObservableObject {
     // Item-level (pre-tax) so it shares a basis with the category/brand breakdowns — see
     // `generateSpendingAnalytics`. Each receipt has exactly one merchant, so this is "itemized
     // spend per store" rather than money-out per store.
-    private func calculateMerchantBreakdown(from receipts: [Receipt]) -> [String: Decimal] {
+    static func calculateMerchantBreakdown(from receipts: [Receipt]) -> [String: Decimal] {
         var breakdown: [String: Decimal] = [:]
 
         for receipt in receipts {
@@ -101,7 +103,7 @@ class AnalyticsService: ObservableObject {
         return breakdown
     }
     
-    private func calculateTaxDeductibleAmount(from receipts: [Receipt]) -> Decimal {
+    static func calculateTaxDeductibleAmount(from receipts: [Receipt]) -> Decimal {
         return receipts.reduce(Decimal(0)) { total, receipt in
             if receipt.category == "Business" || receipt.category == "Medical" || receipt.category == "Charitable" {
                 return total + receipt.total
