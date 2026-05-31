@@ -43,7 +43,7 @@ Receipts → structured, granular data (item + brand + price history) → insigh
 | B4 | "Flagged for review" badge in ReceiptDetailView | correction | Med | review | todo |
 | B5 | AnalyticsService + parser regression tests | quality | Med | #58 | done |
 | B6 | Targeted UI polish — designer plan Top 5 | design | High | #7 | done |
-| B7 | Pitch screenshots / demo capture | design | Med | demo | todo |
+| B7 | Pitch screenshots / demo capture | design | Med | demo | done (refresh set) |
 | B8 | Attach sample images to seeded demo receipts | demo | Med | discovered | done |
 | B9 | Info.plist `ITSAppUsesNonExemptEncryption = NO` | infra | Low | TestFlight | done |
 | B10 | CONTRIBUTING.md + docs/context.md | docs | Med | #43 #44 | done |
