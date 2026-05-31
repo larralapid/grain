@@ -114,7 +114,8 @@ struct SettingsView: View {
                 label: "Export Data",
                 description: receipts.isEmpty
                     ? "Nothing to export yet \u{2014} scan a receipt first."
-                    : "Download your receipts and analytics as CSV or PDF."
+                    // Non-empty + no URL means the CSV write failed (vs. nothing to export).
+                    : "Couldn\u{2019}t prepare the export file \u{2014} free up some storage and try again."
             )
             .opacity(0.5)
         }

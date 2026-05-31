@@ -39,7 +39,7 @@ Receipts → structured, granular data (item + brand + price history) → insigh
 |----|------|------|-----|--------|--------|
 | B1 | Manual receipt entry | capture | High | #58 | done |
 | B2 | CSV data export | export | High | #5 #26 | done |
-| B3 | Replace `print()` error-swallowing with user-facing alerts | quality | High | #58 | todo |
+| B3 | Replace `print()` error-swallowing with user-facing alerts | quality | High | #58 | done (save paths) |
 | B4 | "Flagged for review" badge in ReceiptDetailView | correction | Med | review | todo |
 | B5 | AnalyticsService + parser regression tests | quality | Med | #58 | todo |
 | B6 | Targeted UI polish — designer plan Top 5 | design | High | #7 | done |
@@ -97,5 +97,6 @@ _Capture here; do not act out of scope. Promote to Backlog when prioritized._
 - Split view: persist OCR line bounding boxes at scan time so the view needn't re-run Vision.
 - `SpendingAnalytics` is a persisted `@Model` but behaves like derived data → make it a plain `struct` (data-model hygiene).
 - Verify real scans create `Product` / `Brand` / `PricePoint` (confirmed only for `DemoDataSeeder`); if not, wire product/brand indexing on save — this is core to the "granular" value prop.
+- Remaining B3 scope: `AnalyticsService` fetch `catch`es still `print()` + return empty (degraded display, not data loss) — surface via a Result/throwing API + an error state in `AnalyticsView`. Also the CSV-export `try?` only shows a disabled-row reason; a tap-to-export flow with a modal alert would be better (ties to the computed-`exportCSVURL`-regenerates-every-render note above).
 - Improve OCR (#4) is largely addressed by the hybrid extractor — review and rescope/close the issue.
 - Repo-config issues (#41, #42) partially addressed (.mcp.json, skills, CONTRIBUTING) — reconcile/close.

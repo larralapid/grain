@@ -274,6 +274,7 @@ struct EditReceiptView: View {
     @State private var tax: Decimal
     @State private var total: Decimal
     @State private var drafts: [ItemDraft]
+    @State private var saveError: String?
 
     init(receipt: Receipt) {
         self.receipt = receipt
@@ -351,7 +352,17 @@ struct EditReceiptView: View {
                     Button("save") { saveChanges() }
                 }
             }
+            .alert("couldn't save changes", isPresented: saveErrorBinding) {
+                Button("ok", role: .cancel) { saveError = nil }
+            } message: {
+                Text(saveError ?? "")
+            }
         }
+    }
+
+    /// Drives the save-failure alert off the optional error message.
+    private var saveErrorBinding: Binding<Bool> {
+        Binding(get: { saveError != nil }, set: { if !$0 { saveError = nil } })
     }
 
     private func totalField(_ label: String, value: Binding<Decimal>) -> some View {
@@ -410,7 +421,8 @@ struct EditReceiptView: View {
             try modelContext.save()
             dismiss()
         } catch {
-            print("Error saving receipt: \(error)")
+            // Keep the editor open so the user's edits aren't lost; surface the failure.
+            saveError = error.localizedDescription
         }
     }
 }

@@ -20,6 +20,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 </p>
 
 ### Fixed
+- **Saving a manual or edited receipt now reports failures instead of silently dropping them.** If a save fails, the form stays open with your input intact and an alert explains what went wrong (previously the error was swallowed and the sheet could dismiss as if it had saved). The Export Data row also now says when the export file couldn't be written, rather than looking merely unavailable.
 - **Deleting a receipt or line item no longer corrupts the product index.** Removing an item left its price-history entry (`PricePoint`) orphaned and the brand's running spend/transaction totals overstated, so brand analytics and Item Watch drifted as receipts were edited or deleted. Deletes now reverse the indexing exactly — the price point is removed, the product average is recomputed, and the brand totals are rolled back.
 - **Analytics breakdowns now reconcile.** The *store* breakdown summed receipt totals (incl. tax) while the *category* and *brand* breakdowns summed line-item prices (pre-tax), so the charts on the analytics screen disagreed; the brand breakdown also keyed off free-text item brands rather than the indexed product/brand identity. All three breakdowns are now computed on a single itemized (pre-tax) basis and reconcile with each other; brand spend keys off the indexed `Product`/`Brand`. The headline total stays money-out (incl. tax).
 - **Scan → save now persists receipts.** The document scanner's `SAVE RECEIPT` button was an empty stub (`// TODO: save receipt`), so tapping it did nothing and no receipt was ever created. It now builds a `Receipt` — with parsed line items and the captured image — inserts it into SwiftData, shows a success confirmation, and surfaces a user-facing alert if the save fails.
@@ -30,7 +31,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - Wire "+" toolbar button to manual receipt entry form
 - Wire "Edit" button on scan preview
 - Wire `SAVE` for the guided-capture and live-camera scan modes (document mode now saves)
-- Replace remaining silent `print()` error handling with user-facing alerts (analytics, detail edit)
+- Surface `AnalyticsService` fetch failures in the UI (the remaining silent `print()` paths; save + edit paths now alert)
 - Export Data (CSV / JSON)
 - Import Bank Transactions (OFX/QFX)
 - Tax Categories configuration

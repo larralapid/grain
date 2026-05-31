@@ -16,6 +16,7 @@ struct ManualReceiptEntryView: View {
     @State private var tax: Decimal = 0
     @State private var total: Decimal = 0
     @State private var drafts: [ItemDraft] = []
+    @State private var saveError: String?
 
     private var canSave: Bool {
         !merchantName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -83,7 +84,17 @@ struct ManualReceiptEntryView: View {
                         .disabled(!canSave)
                 }
             }
+            .alert("couldn't save receipt", isPresented: saveErrorBinding) {
+                Button("ok", role: .cancel) { saveError = nil }
+            } message: {
+                Text(saveError ?? "")
+            }
         }
+    }
+
+    /// Drives the save-failure alert off the optional error message.
+    private var saveErrorBinding: Binding<Bool> {
+        Binding(get: { saveError != nil }, set: { if !$0 { saveError = nil } })
     }
 
     private func totalField(_ label: String, value: Binding<Decimal>) -> some View {
@@ -132,7 +143,8 @@ struct ManualReceiptEntryView: View {
             try modelContext.save()
             dismiss()
         } catch {
-            print("Error saving manual receipt: \(error)")
+            // Keep the sheet open so the entered data isn't lost; surface the failure.
+            saveError = error.localizedDescription
         }
     }
 }
