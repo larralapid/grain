@@ -26,7 +26,7 @@ Receipts → structured, granular data (item + brand + price history) → insigh
 ### Next — robustness & insight
 - Parser / extraction regression corpus + `AnalyticsService` tests
 - Product / brand indexing from real scans (not just demo data) + price-history surfacing
-- Demo data carries sample images (so split-view / scan-overlay demo well)
+- Demo data carries sample images (so split-view / scan-overlay demo well) — ✅ (B8: `ReceiptImageRenderer` renders a thermal slip per seeded receipt)
 - Cold start < 200ms (#46)
 
 ### Later — platform (deferred; ADR-gated)
@@ -44,7 +44,7 @@ Receipts → structured, granular data (item + brand + price history) → insigh
 | B5 | AnalyticsService + parser regression tests | quality | Med | #58 | done |
 | B6 | Targeted UI polish — designer plan Top 5 | design | High | #7 | done |
 | B7 | Pitch screenshots / demo capture | design | Med | demo | todo |
-| B8 | Attach sample images to seeded demo receipts | demo | Med | discovered | todo |
+| B8 | Attach sample images to seeded demo receipts | demo | Med | discovered | done |
 | B9 | Info.plist `ITSAppUsesNonExemptEncryption = NO` | infra | Low | TestFlight | done |
 | B10 | CONTRIBUTING.md + docs/context.md | docs | Med | #43 #44 | done |
 | B11 | docs/ROADMAP.md (this file) | docs | Med | process | done |
